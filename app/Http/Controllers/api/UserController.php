@@ -21,31 +21,6 @@ class UserController extends Controller
      */
     public function index()
     {
-        $users = User::orderBy('id', 'desc');
-        $users = $users->paginate(100);
-
-        $data = $users;
-        $tab = [];
-        foreach ($users as $e) {
-            $a = new stdClass();
-            $a->id = $e->id;
-            $a->name = $e->name;
-            $a->email = $e->email;
-            $a->phone = $e->phone;
-            $a->user_image = empty($e->avatar) ? asset('storage/users/default.png') : asset('storage/' . $e->avatar);
-            array_push($tab, $a);
-        }
-        $data = $data->toArray();
-        $data['data'] = $tab;
-        // unset($data['total']);
-        unset($data['last_page']);
-        unset($data['links']);
-        unset($data['first_page_url']);
-        unset($data['last_page_url']);
-        unset($data['path']);
-        unset($data['from']);
-        unset($data['to']);
-        return $this->success($data, 'Users');
     }
 
     /**
@@ -96,7 +71,7 @@ class UserController extends Controller
             $data['avatar'] = $image;
         }
         User::where('id', $user->id)->update($data);
-        return $this->success([], "Vos données ont été mises à jour.");
+        return $this->success("Vos données ont été mises à jour.");
     }
 
     public function update_pass()
@@ -118,13 +93,24 @@ class UserController extends Controller
         }
 
         User::where('id', $user->id)->update(['password' => Hash::make($np)]);
-        return $this->success(null, "Votre mot de passe a été modifié.");
+        return $this->success("Votre mot de passe a été modifié.");
     }
 
     public function me()
     {
         $user = auth()->user();
-        return $this->success($user, "Profil");
+        $user = User::where('id', $user->id)->first(['name', 'email', 'phone', 'avatar', 'user_role']);
+        $user = (object) $user;
+        $user->avatar = empty($user->avatar) ? asset('storage/default.png') : asset('storage/', $user->avatar);
+        return $this->success("Profil", $user);
+    }
+
+    public function keys()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $keys = $user->apikeys()->get(['key', 'type']);
+        return $this->success("Vos clés api", $keys);
     }
 
     /**

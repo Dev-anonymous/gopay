@@ -3,16 +3,12 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Approvisionnement;
-use App\Models\Compte;
+use App\Models\DemandeTransfert;
 use App\Models\Devise;
-use App\Models\Flexpay;
+use App\Models\Fp;
 use App\Models\Operateur;
-use App\Models\Solde;
 use App\Models\Transaction;
 use App\Traits\ApiResponser;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 
@@ -23,7 +19,7 @@ class PayementController extends Controller
     public function payCallBack($cb_code = null)
     {
         if ($cb_code) {
-            Flexpay::where(['is_saved' => 0, 'cb_code' => $cb_code])->update(['callback' => 1]);
+            Fp::where(['is_saved' => 0, 'cb_code' => $cb_code])->update(['callback' => 1]);
         }
     }
 
@@ -35,43 +31,35 @@ class PayementController extends Controller
 
         $tab = [];
         foreach ($solde as $e) {
-            array_push($tab, (object) [
-                'devise' => $e->devise->devise,
-                'montant' =>  number_format($e->montant, 2, '.', ' ')
-            ]);
+            array_push($tab, formatMontant($e->montant, $e->devise->devise));
         }
 
         $devise = strtoupper($devise);
         if ($devise and !in_array($devise, ['USD', 'CDF'])) {
-            return  $this->error("Devise nom valide : $devise", 400, []);
+            return  $this->error("Devise non valide : $devise", 400, []);
         }
 
         $r = $tab;
         if ($devise) {
             foreach ($r as $sol) {
-                if ($sol->devise == $devise) {
+                $dev = explode(' ', $sol)[1];
+                if ($dev == $devise) {
                     $s[] = $sol;
                     $r = $s;
                     break;
                 }
             }
         }
-
-        return $this->success($r, 'Votre solde');
+        return $this->success('Votre solde', $r);
     }
 
-    public function appro()
+    public function payinit()
     {
-        /** @var \App\Models\User $user **/
-        $user = auth()->user();
-        $compte = $user->comptes()->first();
-
         $validator = Validator::make(
             request()->all(),
             [
-                'operateur_id' => 'required|exists:operateur,id',
-                'devise_id' => 'required|exists:devise,id',
-                'montant' => 'required|numeric|min:1',
+                'devise' => 'required|in:CDF,USD',
+                'montant' => 'required|numeric|',
                 'telephone' => 'required|min:1|regex:/(243)[0-9]{9}/',
             ]
         );
@@ -80,51 +68,59 @@ class PayementController extends Controller
             return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
         }
 
-        $data = $validator->validated();
-        $data['compte_id'] = $compte->id;
-        $data['trans_id'] = trans_id();
-
-        $dev = Devise::where('id', request()->devise_id)->first();
+        $dev = request()->devise;
         $montant = request()->montant;
         $telephone = request()->telephone;
+
+        if ($dev == 'CDF' && $montant < 500) {
+            return $this->error('Validation error', 400, ['errors_msg' => ["Le montant minimum de paiement est de 500 $dev"]]);
+        }
+
+        $user = getUser();
+        $compte = $user->comptes()->first();
 
         $ref = strtoupper(uniqid('REF-', true));
         $cb_code = time() . rand(20000, 90000);
 
         $_paydata = [
-            'devise' => $dev->devise,
+            'devise' => $dev,
             'montant' => $montant,
             'telephone' => $telephone,
-            'trans_data' => $data
+            'trans_data' => [
+                'compte_id' => $compte->id,
+                'devise_id' => Devise::where('devise', $dev)->first()->id,
+                'montant' => $montant,
+                'trans_id' => trans_id(),
+                'date' => now('Africa/Lubumbashi')
+            ]
         ];
-        $rep = startFlexPay($dev->devise, $montant, $telephone, $ref, $cb_code);
+
+        $rep = startFlexPay($dev, $montant, $telephone, $ref, $cb_code);
         if ($rep['status'] == true) {
-            $tab['ref'] = $ref;
             $paydata = [
                 'paydata' => $_paydata,
                 'apiresponse' => $rep['data']
             ];
-            Flexpay::create([
+            Fp::create([
                 'user' => $user,
                 'cb_code' => $cb_code,
                 'ref' => $ref,
                 'pay_data' => json_encode($paydata),
             ]);
-            return $this->success(['ref' => $ref], $rep['message']);
+            return $this->success($rep['message'], ['ref' => $ref]);
         } else {
             return $this->error($rep['message'], 200);
         }
     }
 
-    public function appro_check($ref = null)
+    public function paycheck($ref = null)
     {
         if (!$ref) {
             return $this->error('Ref ?', 400);
         }
-
         $ok =  false;
+        $flex = Fp::where(['ref' => $ref])->first();
 
-        $flex = Flexpay::where(['ref' => $ref])->first();
         if ($flex) {
             $orderNumber = @json_decode($flex->pay_data)->apiresponse->orderNumber;
             if ($orderNumber) {
@@ -140,74 +136,74 @@ class PayementController extends Controller
         }
 
         if ($ok || $flex->is_saved == 1) {
-            return $this->success(null, "Votre transaction est enregistrée avec succès.");
+            return $this->success("Votre transaction est effectuée avec succès.");
         } else {
-            $m = "Aucune transaction enregistrée. Les transactions avec certains opérateurs peuvent prendre jusqu'à 24h avant d'etre traitées, si le solde de votre compte a été débité, votre transaction sera enregistrée une fois le processus de paiement terminé. Merci.";
+            $m = "Aucune transaction trouvée.";
             return $this->error($m, 200);
         }
     }
 
     public function transfert()
     {
-        /** @var \App\Models\User $user **/
-        $user = auth()->user();
+        // /** @var \App\Models\User $user **/
+        // $user = auth()->user();
 
-        $validator = Validator::make(
-            request()->all(),
-            [
-                'numero_compte' => 'required|exists:compte,numero_compte',
-                'devise_id' => 'required|exists:devise,id',
-                'montant' => 'required|numeric|min:1',
-            ]
-        );
+        // $validator = Validator::make(
+        //     request()->all(),
+        //     [
+        //         'numero_compte' => 'required|exists:compte,numero_compte',
+        //         'devise_id' => 'required|exists:devise,id',
+        //         'montant' => 'required|numeric|min:1',
+        //     ]
+        // );
 
-        if ($validator->fails()) {
-            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
-        }
+        // if ($validator->fails()) {
+        //     return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+        // }
 
-        $data = $validator->validated();
-        $cmpt = $data['numero_compte'];
-        $mont = $data['montant'];
+        // $data = $validator->validated();
+        // $cmpt = $data['numero_compte'];
+        // $mont = $data['montant'];
 
-        $compte = $user->comptes()->first();
-        if ($cmpt == $compte->numero_compte) {
-            return $this->error('Echec de transaction', 400, ['errors_msg' => ["Numéro de compte non autorisé."]]);
-        }
+        // $compte = $user->comptes()->first();
+        // if ($cmpt == $compte->numero_compte) {
+        //     return $this->error('Echec de transaction', 400, ['errors_msg' => ["Numéro de compte non autorisé."]]);
+        // }
 
-        $solde = $compte->soldes()->where(['devise_id' => $data['devise_id']])->first();
-        $montant_solde = $solde->montant;
+        // $solde = $compte->soldes()->where(['devise_id' => $data['devise_id']])->first();
+        // $montant_solde = $solde->montant;
 
-        if ($montant_solde < $mont) {
-            return $this->error('Echec de transaction', 400, ['errors_msg' => ["Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre transaction de $mont {$solde->devise->devise} ne peut etre effectuée, merci de recharger votre compte."]]);
-        }
+        // if ($montant_solde < $mont) {
+        //     return $this->error('Echec de transaction', 400, ['errors_msg' => ["Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre transaction de $mont {$solde->devise->devise} ne peut etre effectuée, merci de recharger votre compte."]]);
+        // }
 
-        DB::beginTransaction();
-        $solde->decrement('montant', $mont);
+        // DB::beginTransaction();
+        // $solde->decrement('montant', $mont);
 
-        $d['compte_id'] = $compte->id;
-        $d['devise_id'] = $data['devise_id'];
-        $d['montant'] = $data['montant'];
-        $d['trans_id'] = $transid = trans_id();
-        $d['type'] = 'transfert';
-        $d['data'] = json_encode([
-            'to' => $data['numero_compte']
-        ]);
-        Transaction::create($d);
+        // $d['compte_id'] = $compte->id;
+        // $d['devise_id'] = $data['devise_id'];
+        // $d['montant'] = $data['montant'];
+        // $d['trans_id'] = $transid = trans_id();
+        // $d['type'] = 'transfert';
+        // $d['data'] = json_encode([
+        //     'to' => $data['numero_compte']
+        // ]);
+        // Transaction::create($d);
 
-        $comptBenficiaire = Compte::where('numero_compte', $data['numero_compte'])->first();
-        $solde2 = $comptBenficiaire->soldes()->where(['devise_id' => $data['devise_id']])->first();
-        $solde2->increment('montant', $mont);
+        // $comptBenficiaire = Compte::where('numero_compte', $data['numero_compte'])->first();
+        // $solde2 = $comptBenficiaire->soldes()->where(['devise_id' => $data['devise_id']])->first();
+        // $solde2->increment('montant', $mont);
 
-        $d['compte_id'] = $comptBenficiaire->id;
-        $d['source'] = 'client';
-        $d['data'] = json_encode([
-            'from' => $compte->numero_compte
-        ]);
-        Transaction::create($d);
-        DB::commit();
+        // $d['compte_id'] = $comptBenficiaire->id;
+        // $d['source'] = 'client';
+        // $d['data'] = json_encode([
+        //     'from' => $compte->numero_compte
+        // ]);
+        // Transaction::create($d);
+        // DB::commit();
 
-        $msg = "Vous venez d'effectuer un tranfert de $mont {$solde->devise->devise} vers le compte {$comptBenficiaire->numero_compte}({$comptBenficiaire->user->name}). TransID : $transid";
-        return $this->success([], $msg);
+        // $msg = "Vous venez d'effectuer un tranfert de $mont {$solde->devise->devise} vers le compte {$comptBenficiaire->numero_compte}({$comptBenficiaire->user->name}). TransID : $transid";
+        // return $this->success($msg);
     }
 
 
@@ -238,14 +234,65 @@ class PayementController extends Controller
                 $op = ['operateur' => $op->operateur, 'image' => asset('storage/' . $op->image)];
             }
             $a->operateur = $op;
-
-            $a->date = $e->date->format('Y-m-d H:i:s');
-
+            $a->date = $e->date->format('d-m-Y H:i:s');
             array_push($tab, $a);
         }
 
         $m = "Vos transactions";
-        return $this->success($tab, "$m");
+        return $this->success($m, $tab);
+    }
+
+    public function demande_tranfert()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'devise' => 'required|in:CDF,USD',
+                'montant' => 'required|numeric|',
+                'telephone' => 'required|min:1|regex:/(\+243)[0-9]{9}/',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+        }
+        $devise = request()->devise;
+        $montant = request()->montant;
+        $telephone = request()->telephone;
+        $dev = Devise::where('devise', $devise)->first();
+
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $compte = $user->comptes()->first();
+
+        $solde = $compte->soldes()->where(['devise_id' => $dev->id])->first();
+        $montant_solde = $solde->montant;
+
+        if ($montant_solde < $montant) {
+            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre demande de transfert de $montant {$solde->devise->devise} ne peut etre enregistrée pour le moment.", 200);
+        }
+        DemandeTransfert::create(['solde_id' => $solde->id, 'au_numero' => $telephone, 'montant' => $montant, 'date' => now()]);
+        return $this->success("Votre demande de transfert a été enregistrée et sera traité dans 24h. Merci.");
+    }
+
+    public function get_demande_tranfert()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $idsol = $user->comptes()->first()->soldes()->pluck('id')->all();
+        $demande = DemandeTransfert::whereIn('solde_id', $idsol)->orderBy('id', 'DESC')->get();
+        $tab = [];
+        foreach ($demande as $e) {
+            $o = (object)[];
+            $o->id = $e->id;
+            $o->montant = formatMontant($e->montant, $e->solde->devise->devise);
+            $o->au_numero = $e->au_numero;
+            $o->status = $e->status;
+            $o->note_validation = $e->note_validation;
+            $o->date = $e->date->format('d-m-Y H:i:s');
+            array_push($tab, $o);
+        }
+        return $this->success("Vos demandes de tranfert", $tab);
     }
 
     public function numero_compte()
@@ -254,18 +301,18 @@ class PayementController extends Controller
         $user = auth()->user();
         $compte = $user->comptes()->first();
         $n = $compte->numero_compte;
-        return $this->success($n, "Mon numero de compte");
+        return $this->success("Mon numero de compte", $n);
     }
 
     public function devise()
     {
         $dev = Devise::get(['id', 'devise']);
-        return $this->success($dev, "Liste devises");
+        return $this->success("Liste devises", $dev);
     }
 
     public function operateur()
     {
         $dev = Operateur::get(['id', 'operateur']);
-        return $this->success($dev, "Liste operateurs");
+        return $this->success("Liste operateurs", $dev);
     }
 }

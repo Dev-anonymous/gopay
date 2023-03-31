@@ -26,14 +26,11 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $derniere_connexion
  * @property string|null $phone
  * @property string|null $avatar
+ * @property string|null $user_role
+ * @property string|null $pin
  *
- * @property Collection|Chat[] $chats
- * @property Collection|Commande[] $commandes
- * @property Collection|Commentaire[] $commentaires
+ * @property Collection|Apikey[] $apikeys
  * @property Collection|Compte[] $comptes
- * @property Collection|Entreprise[] $entreprises
- * @property Collection|Panier[] $paniers
- * @property Collection|Publication[] $publications
  * @property Collection|Recovery[] $recoveries
  *
  * @package App\Models
@@ -62,42 +59,19 @@ class User extends Authenticatable
         'remember_token',
         'derniere_connexion',
         'phone',
-        'avatar'
+        'avatar',
+        'user_role',
+        'pin'
     ];
 
-    public function chats()
+    public function apikeys()
     {
-        return $this->hasMany(Chat::class, 'users_id');
-    }
-
-    public function commandes()
-    {
-        return $this->hasMany(Commande::class, 'users_id');
-    }
-
-    public function commentaires()
-    {
-        return $this->hasMany(Commentaire::class, 'users_id');
+        return $this->hasMany(Apikey::class, 'users_id');
     }
 
     public function comptes()
     {
         return $this->hasMany(Compte::class, 'users_id');
-    }
-
-    public function entreprises()
-    {
-        return $this->hasMany(Entreprise::class, 'users_id');
-    }
-
-    public function paniers()
-    {
-        return $this->hasMany(Panier::class, 'users_id');
-    }
-
-    public function publications()
-    {
-        return $this->hasMany(Publication::class, 'users_id');
     }
 
     public function recoveries()

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $users_id
  * @property string $key
  * @property string $type
+ * @property int|null $active
  * 
  * @property User $user
  *
@@ -26,13 +27,15 @@ class Apikey extends Model
 	public $timestamps = false;
 
 	protected $casts = [
-		'users_id' => 'int'
+		'users_id' => 'int',
+		'active' => 'int'
 	];
 
 	protected $fillable = [
 		'users_id',
 		'key',
-		'type'
+		'type',
+		'active'
 	];
 
 	public function user()

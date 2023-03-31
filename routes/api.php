@@ -1,96 +1,35 @@
 <?php
 
-use App\Http\Controllers\api\ArticleController;
 use App\Http\Controllers\api\AuthController;
-use App\Http\Controllers\api\CategorieArticleController;
-use App\Http\Controllers\api\CommandeController;
-use App\Http\Controllers\api\CommentaireController;
-use App\Http\Controllers\api\EntrepriseController;
-use App\Http\Controllers\api\MessageController;
-use App\Http\Controllers\api\PanierController;
 use App\Http\Controllers\api\PayementController;
-use App\Http\Controllers\api\PublicationController;
 use App\Http\Controllers\api\RecoveryController;
 use App\Http\Controllers\api\UserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
 
 #==========   USER AUTH  =======#
 Route::post('/auth/register', [AuthController::class, 'register']);
 Route::post('/auth/login', [AuthController::class, 'login']);
-
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
-#######################################################
-
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
-
-    ############# PUBLICATIONS
-    Route::get('/publication', [PublicationController::class, 'index']);
-    Route::get('/publication/{id}', [PublicationController::class, 'show']);
-    Route::post('/publication', [PublicationController::class, 'store']);
-    Route::delete('/publication/{id}', [PublicationController::class, 'destroy']);
-
-    ############# COMMENTAIRE
-    Route::post('/commentaire', [CommentaireController::class, 'store']);
-    Route::get('/commentaire/{publication_id}', [CommentaireController::class, 'show']);
-    Route::delete('/commentaire/{id}', [CommentaireController::class, 'destroy']);
-
-    ############# CATEGORIE ARTICLE
-    Route::post('/categorie-article', [CategorieArticleController::class, 'store']);
-    Route::get('/categorie-article', [CategorieArticleController::class, 'index']);
-    Route::delete('/categorie-article/{id}', [CategorieArticleController::class, 'destroy']);
-
-    ############# ARTICLE
-    Route::get('/article/entreprise/{id}', [ArticleController::class, 'index_ese']); //recupereles les article d'une entreprise
-    Route::get('/article', [ArticleController::class, 'index']);
-    Route::get('/article/{id}', [ArticleController::class, 'show']);
-    Route::post('/article', [ArticleController::class, 'store']);
-    Route::post('/article/maj', [ArticleController::class, 'update']);
-    Route::delete('/article/{id}', [ArticleController::class, 'destroy']);
-
-    ########### LISTE ARTICLE de l'UTILISATEUR
-    Route::get('/user/article', [ArticleController::class, 'userArticles']);
-
     ########### SOLDE & TRANSFERT
     Route::get('/solde/{devise?}', [PayementController::class, 'solde']); //liste solde user
-    Route::post('/appro', [PayementController::class, 'appro']); //approvisionner mon compte
-    Route::post('/appro-check/{ref?}', [PayementController::class, 'appro_check']); //verifier la transaction d'approvisionnement
-    Route::post('/transfert', [PayementController::class, 'transfert']); //transfert argent vers un compte
-    Route::get('/transaction/{limite?}', [PayementController::class, 'transaction']); //liste transaction
     Route::get('/numero-compte', [PayementController::class, 'numero_compte']); //affiche le numero de compte du user
 
-    ############# MESSAGE
-    Route::get('/chat', [MessageController::class, 'index']); // liste conversations recentes
-    Route::get('/message/{with_uid}', [MessageController::class, 'show']); // liste message avec un user
-    Route::post('/message', [MessageController::class, 'store']); //envoyer un message
-    Route::delete('/message/{id}', [MessageController::class, 'destroy']); // #######
+    Route::get('/transaction/{limite?}', [PayementController::class, 'transaction']); //liste transaction
+    Route::post('/demande-transfert', [PayementController::class, 'demande_tranfert']); //demande tranfert de fonds
+    Route::get('/demande-transfert', [PayementController::class, 'get_demande_tranfert']);
+    // Route::post('/transfert', [PayementController::class, 'transfert']); //transfert argent vers un compte
 
-    #==========   PANIER   =======#
-    Route::resource('panier', PanierController::class); // php artisan route:list
-    #######################################################
+    #==========   User & Key =======#
+    Route::post('/user/update', [UserController::class, 'update']); //update
+    Route::post('/user/pass', [UserController::class, 'update_pass']); //update password
+    Route::get('/user/me', [UserController::class, 'me']); //profil
 
-    #==========   Commande   =======#
-    Route::get('/commande/{id?}', [CommandeController::class, 'commande']); // liste commandes / detail commande
-    Route::post('/commande', [CommandeController::class, 'passerCommande']); // passer la commande
-    #######################################################
+    Route::get('/user/keys', [UserController::class, 'keys']); // api keys
 
-    #==========   Users   =======#
-    Route::get('/users', [UserController::class, 'index']); //liste des utilisateurs
-    Route::post('/users', [UserController::class, 'update']); //update
-    Route::post('/users/pass', [UserController::class, 'update_pass']); //update password
-    Route::get('/users/me', [UserController::class, 'me']); //profil
-
-    #==========   Entreprise   =======#
-    Route::get('/entreprise', [EntrepriseController::class, 'index']);
-    Route::get('/entreprise/all', [EntrepriseController::class, 'index_all']); //recuperer toutes les entreprises
-    Route::post('/entreprise', [EntrepriseController::class, 'store']);
-    Route::get('/entreprise/{entreprise}', [EntrepriseController::class, 'show']);
-    Route::delete('/entreprise/{entreprise}', [EntrepriseController::class, 'destroy']);
-    Route::post('/entreprise/update/{entreprise}', [EntrepriseController::class, 'update']);
 });
 
 ########### DEVISE & OPERATEUR
@@ -98,5 +37,10 @@ Route::get('/devise', [PayementController::class, 'devise']);
 Route::get('/operateur', [PayementController::class, 'operateur']);
 
 #==========   Mot de passe oublié   =======#
-Route::post('/recovery', [RecoveryController::class, 'recovery']);
-Route::post('/recovery/check', [RecoveryController::class, 'check']);
+Route::post('/user/recovery', [RecoveryController::class, 'recovery']);
+Route::post('/user/recovery/check', [RecoveryController::class, 'check']);
+
+Route::middleware('paymentProd')->group(function () {
+    Route::post('/payment/init', [PayementController::class, 'payinit']); //initiaiser un paiement
+    Route::post('/payment/check/{ref?}', [PayementController::class, 'paycheck']); //verifier le paiement
+});

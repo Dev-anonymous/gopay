@@ -1,8 +1,7 @@
 <?php
 
-use App\Models\Commande;
+use App\Models\Apikey;
 use App\Models\Compte;
-use App\Models\Flexpay;
 use App\Models\Fp;
 use App\Models\Transaction;
 use App\Models\User;
@@ -11,23 +10,58 @@ use Illuminate\Support\Str;
 
 define('FLEXPAY_HEADERS', [
     "Content-Type: application/json",
-    "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJcL2xvZ2luIiwicm9sZXMiOlsiTUVSQ0hBTlQiXSwiZXhwIjoxNzI1NTMwNTA2LCJzdWIiOiI0MDNiMmJiODc5MGFhYzA2NTIzNzY4MjJmMmRkMmY5NSJ9.WgAwvlzgXPBueAmX2dh0LFqiE6LR_Ri4IzZUGnkgppY"
+    "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJcL2xvZ2luIiwicm9sZXMiOlsiTUVSQ0hBTlQiXSwiZXhwIjoxNzI2NzM2NzQ4LCJzdWIiOiI2ZGQzMWVmOTNkNzQ2ZmQ2NmU5ZjZjZDRhMWNjM2M2YiJ9.A5wcsvDM1wi_xdsWJQOM18IZaBPvyTPRAQFgvi0WIlg"
 ]);
+define('MARCHAND', 'GROUPER');
+define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
 
-define('BASE_U', "http://41.243.7.46:3006/flexpay/api");
+// function getMimeType($filename)
+// {
+//     if (!file_exists($filename)) return '';
+//     $mimetype = mime_content_type($filename);
+//     if (strpos($mimetype, 'image') !== false) {
+//         $mimetype = 'image';
+//     } else if (strpos($mimetype, 'audio') !== false) {
+//         $mimetype = 'audio';
+//     } else if (strpos($mimetype, 'video') !== false) {
+//         $mimetype = 'video';
+//     }
+//     return $mimetype;
+// }
 
-function getMimeType($filename)
+function formatMontant($montant, $devise = '')
 {
-    if (!file_exists($filename)) return '';
-    $mimetype = mime_content_type($filename);
-    if (strpos($mimetype, 'image') !== false) {
-        $mimetype = 'image';
-    } else if (strpos($mimetype, 'audio') !== false) {
-        $mimetype = 'audio';
-    } else if (strpos($mimetype, 'video') !== false) {
-        $mimetype = 'video';
+    return trim(number_format($montant, 2, '.', ' ') . " $devise");
+}
+
+function encode($str, $encrypt = true)
+{
+    $output = false;
+    $encrypt_method = "AES-256-CBC";
+    $secret_key = '1001';
+    $secret_iv = '2002';
+    $key = hash('sha256', $secret_key);
+    $iv = substr(hash('sha256', $secret_iv), 0, 16);
+    if ($encrypt == true) {
+        $output = openssl_encrypt($str, $encrypt_method, $key, 0, $iv);
+        $output = base64_encode($output);
+    } else {
+        $output = openssl_decrypt(base64_decode($str), $encrypt_method, $key, 0, $iv);
     }
-    return $mimetype;
+    return $output;
+}
+
+function getUser()
+{
+    $apikey = request()->header('x-api-key');
+    if (!$apikey) {
+        abort(403, "API Key is required");
+    }
+    $at = Apikey::where('key', $apikey)->first();
+    if (!$at) {
+        abort(403, "Invalid API Key");
+    }
+    return $at->user;
 }
 
 function numeroCompte()
@@ -77,42 +111,13 @@ function trans_id()
     return $c;
 }
 
-function makeUserCommande($iduser, array $data)
-{
-    // $nb_cmds = Commande::where('users_id', $iduser)->get()->count() + 1;
-    // $data['numero'] = numeroCmd($iduser, $nb_cmds);
-    // return Commande::create($data);
-}
-
-function numeroCmd($iduser, $n)
-{
-    switch ($n) {
-        case $n <= 9:
-            $n = "00$n";
-            break;
-        case $n >= 10 and $n <= 99:
-            $n = "0$n";
-            break;
-        default:
-            break;
-    }
-    return "C-$iduser-" . $n . '-' . strtoupper(Str::random(10));
-}
-
-function encodeFile($file)
-{
-    if (!is_file($file)) return;
-    return 'data:' . mime_content_type($file) . ';base64,' . base64_encode(file_get_contents($file));
-}
-
 function startFlexPay($devise, $montant, $telephone, $ref, $cb_code)
 {
     $_api_headers = FLEXPAY_HEADERS;
-    $marchand = 'OASISAPP';
 
     $telephone = (float) $telephone;
     $data = array(
-        "merchant" => $marchand,
+        "merchant" => MARCHAND,
         "type" => "1",
         "phone" => "$telephone",
         "reference" => "$ref",
@@ -123,7 +128,7 @@ function startFlexPay($devise, $montant, $telephone, $ref, $cb_code)
 
 
     $data = json_encode($data);
-    $gateway = BASE_U . "/rest/v1/paymentService";
+    $gateway = API_BASE . "/paymentService";
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $gateway);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -158,7 +163,6 @@ function completeFlexpayTrans()
     foreach ($pendingPayments as $e) {
         $payedata = json_decode($e->pay_data);
         $orderNumber = $payedata->apiresponse->orderNumber;
-
         if (transaction_was_success($orderNumber) == true) {
             saveData($payedata, $e);
         } else {
@@ -171,7 +175,7 @@ function transaction_was_success($orderNumber)
 {
     $_api_headers = FLEXPAY_HEADERS;
 
-    $gateway = BASE_U . "/rest/v1/check/" . $orderNumber;
+    $gateway = API_BASE . "/check/" . $orderNumber;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $gateway);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $_api_headers);
@@ -196,7 +200,7 @@ function transaction_was_success($orderNumber)
 
 function saveData($payedata, $e)
 {
-    $user = User::find(json_decode($e->user)->id)->first();
+    $user = User::where('id', json_decode($e->user)->id)->first();
     if ($user) {
         $compte = $user->comptes()->first();
         $trans_data = (array) $payedata->paydata->trans_data;

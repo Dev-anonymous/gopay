@@ -12,9 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use PhpParser\Node\Stmt\TryCatch;
 
 class AuthController extends Controller
 {
@@ -22,52 +20,52 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $validator = Validator::make(
-            $request->all(),
-            [
-                'name' => 'required|string|max:45',
-                'email' => 'sometimes|email|max:255|unique:users',
-                'phone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
-                'password' => 'required|string|min:6|same:cpassword',
-                'cpassword' => 'required|string|min:6|',
-                'user_role' => 'sometimes|in:marchand,client',
-            ]
-        );
+        // $validator = Validator::make(
+        //     $request->all(),
+        //     [
+        //         'name' => 'required|string|max:45',
+        //         'email' => 'sometimes|email|max:255|unique:users',
+        //         'phone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
+        //         'password' => 'required|string|min:6|same:cpassword',
+        //         'cpassword' => 'required|string|min:6|',
+        //         'user_role' => 'sometimes|in:marchand,client',
+        //     ]
+        // );
 
-        if ($validator->fails()) {
-            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
-        }
+        // if ($validator->fails()) {
+        //     return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+        // }
 
-        $em = request('email');
-        $ph = request('phone');
-        if (empty($em) and empty($ph)) {
-            return $this->error('Erreur', 400, ['errors_msg' => ["Vous devez spécifier soit votre email, soit votre numéro de téléphone pour créer un compte."]]);
-        }
+        // $em = request('email');
+        // $ph = request('phone');
+        // if (empty($em) and empty($ph)) {
+        //     return $this->error('Erreur', 400, ['errors_msg' => ["Vous devez spécifier soit votre email, soit votre numéro de téléphone pour créer un compte."]]);
+        // }
 
-        $data = $validator->validate();
-        $data['password'] = Hash::make($data['password']);
+        // $data = $validator->validate();
+        // $data['password'] = Hash::make($data['password']);
 
-        DB::beginTransaction();
-        try {
-            $data['avatar'] = '';
-            $user = User::create($data);
-            $cmpt =  Compte::create([
-                'users_id' => $user->id,
-                'numero_compte' => numeroCompte()
-            ]);
-            $dev = Devise::all();
-            foreach ($dev as $d) {
-                Solde::create(['montant' => 0, 'devise_id' => $d->id, 'compte_id' => $cmpt->id]);
-            }
-            DB::commit();
-            Auth::login($user);
-            return $this->success([
-                'token' => $user->createToken('token_' . time())->plainTextToken,
-            ], "Account created successfully.");
-        } catch (\Exception $th) {
-            DB::rollBack();
-            return $this->error('Erreur', 200, ['errors_msg' => ["Une erreur s'est produite lors de la création de votre compte."]]);
-        }
+        // DB::beginTransaction();
+        // try {
+        //     $data['avatar'] = '';
+        //     $user = User::create($data);
+        //     $cmpt =  Compte::create([
+        //         'users_id' => $user->id,
+        //         'numero_compte' => numeroCompte()
+        //     ]);
+        //     $dev = Devise::all();
+        //     foreach ($dev as $d) {
+        //         Solde::create(['montant' => 0, 'devise_id' => $d->id, 'compte_id' => $cmpt->id]);
+        //     }
+        //     DB::commit();
+        //     Auth::login($user);
+        //     return $this->success([
+        //         'token' => $user->createToken('token_' . time())->plainTextToken,
+        //     ], "Account created successfully.");
+        // } catch (\Exception $th) {
+        //     DB::rollBack();
+        //     return $this->error('Erreur', 200, ['errors_msg' => ["Une erreur s'est produite lors de la création de votre compte."]]);
+        // }
     }
 
     public function login(Request $request)
@@ -106,11 +104,12 @@ class AuthController extends Controller
 
         /** @var \App\Models\User $user **/
         $user = auth()->user();
-        User::where(['id' => $user->id])->update(['derniere_connexion' => now()]);
-        return $this->success([
+        $user->update(['derniere_connexion' => now('Africa/Lubumbashi')]);
+
+        return $this->success("Successful authentication.", [
             'token' => $user->createToken('token_' . time())->plainTextToken,
-            'user' => $user,
-        ], "Successful authentication.");
+            'role' => $user->user_role,
+        ]);
     }
 
     public function logout()
@@ -120,6 +119,6 @@ class AuthController extends Controller
             $user = auth()->user();
             $user->tokens()->delete();
         }
-        return $this->success([], "Logout success");
+        return $this->success("Logout success");
     }
 }
