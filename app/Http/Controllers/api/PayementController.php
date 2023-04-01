@@ -226,7 +226,7 @@ class PayementController extends Controller
             $a = new stdClass();
             $a->id = $e->id;
             $a->trans_id = $e->trans_id;
-            $a->montant = "$e->montant {$e->devise->devise}";
+            $a->montant = formatMontant($e->montant, $e->devise->devise);
             $a->type = $e->type;
             $a->source = $e->source;
             $op =  $e->operateur;

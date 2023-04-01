@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Feedback;
 use App\Models\User;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 
@@ -113,14 +115,33 @@ class UserController extends Controller
         return $this->success("Vos clés api", $keys);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function feedback()
     {
-        //
+        $validator = Validator::make(request()->all(), [
+            'nom' => 'required|max:128',
+            'email' => 'sometimes|email|max:128',
+            'telephone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|',
+            'sujet' => 'required|min:6,max:255',
+            'message' => 'required|min:6|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        if (empty(request()->telephone) and empty(request()->email)) {
+            return $this->error('Validation error', 400, ['errors_msg' => ["Vous devez renseigner soit votre email soit votre numéro de téléphone."]]);
+        }
+        $data = $validator->validate();
+        $data['date'] = now('Africa/Lubumbashi');
+        Feedback::create($data);
+
+        try {
+            $d = implode('<br>', $data);
+            $d = str_replace('<br>', "\n", $d);
+            // Mail::to('contact@gooomart.com')->send(new ContactMail($d));
+        } catch (\Throwable $th) {
+        }
+        return $this->success("Merci de nous avoir laisser votre message! nous le prenons avec beaucoup de considération et vous serez contacter si nécessaire. Merci.");
     }
 }
