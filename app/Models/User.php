@@ -26,8 +26,9 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $derniere_connexion
  * @property string|null $phone
  * @property string|null $avatar
- * @property string|null $user_role
+ * @property string $user_role
  * @property string|null $pin
+ * @property string|null $business_name
  *
  * @property Collection|Apikey[] $apikeys
  * @property Collection|Compte[] $comptes
@@ -61,7 +62,8 @@ class User extends Authenticatable
         'phone',
         'avatar',
         'user_role',
-        'pin'
+        'pin',
+        'business_name'
     ];
 
     public function apikeys()

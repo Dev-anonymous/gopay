@@ -25,7 +25,14 @@ class AdminController extends Controller
     public function feedback()
     {
         $data = Feedback::orderBy('id', 'desc')->get();
-        return $this->success("Feedback", $data);
+        $tab = [];
+        foreach ($data as $e) {
+            $o = (object) $e->toArray();
+            $o->date = $e->date->format('Y-m-d H:i:s');
+            $tab[] = $o;
+        }
+        $n = count($tab);
+        return $this->success("FEEDBACK ($n)", $tab);
     }
 
     public function marchand()
@@ -35,6 +42,7 @@ class AdminController extends Controller
         foreach ($data as $e) {
             $o = (object)[];
             $o->id = $e->id;
+            $o->business_name = $e->business_name;
             $o->name = $e->name;
             $o->phone = $e->phone;
             $o->email = $e->email;
@@ -45,12 +53,14 @@ class AdminController extends Controller
             foreach ($solde as $so) {
                 array_push($s, formatMontant($so->montant, $so->devise->devise));
             }
-            $o->solde = implode(',', $s);
+            $o->solde = $s;
             $o->numero_compte = $cmpt->numero_compte;
             $o->apikey = $e->apikeys()->get(['id', 'key', 'type', 'active']);
+            $o->date_creation = $e->created_at->format('Y-m-d H:i:s');
             array_push($tab, $o);
         }
-        return $this->success('Marchands', $tab);
+        $n = count($tab);
+        return $this->success("COMPTES MARCHANDS ($n)", $tab);
     }
 
     public function marchand_add(Request $request)
@@ -59,24 +69,26 @@ class AdminController extends Controller
             $request->all(),
             [
                 'name' => 'required|string|max:45',
-                'email' => 'sometimes|email|max:255|unique:users',
+                'business_name' => 'required|string|max:45',
+                'email' => 'sometimes|email|max:45|unique:users',
                 'phone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
                 'password' => 'required|string|min:6|',
             ]
         );
 
         if ($validator->fails()) {
-            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
 
         $em = request('email');
         $ph = request('phone');
         if (empty($em) and empty($ph)) {
-            return $this->error('Erreur', 400, ['errors_msg' => ["Vous devez spécifier soit votre email, soit le numéro de téléphone pour créer un compte."]]);
+            return $this->error('Erreur', ['errors_msg' => ["Vous devez spécifier soit un email, soit le numéro de téléphone pour créer un compte."]]);
         }
 
         $data = $validator->validate();
         $data['password'] = Hash::make($data['password']);
+        $data['user_role'] = 'marchand';
 
         DB::beginTransaction();
         try {
@@ -87,6 +99,12 @@ class AdminController extends Controller
                 'numero_compte' => numeroCompte()
             ]);
             $dev = Devise::all();
+            if (!count($dev)) {
+                foreach (['CDF', 'USD'] as $d) {
+                    Devise::create(['devise' => $d]);
+                };
+                $dev = Devise::all();
+            }
             foreach ($dev as $d) {
                 Solde::create(['montant' => 0, 'devise_id' => $d->id, 'compte_id' => $cmpt->id]);
             }
@@ -99,7 +117,7 @@ class AdminController extends Controller
             return $this->success("Le compte a été créé avec succès.");
         } catch (\Exception $th) {
             DB::rollBack();
-            return $this->error('Erreur', 200, ['errors_msg' => ["Une erreur s'est produite lors de la création du compte."]]);
+            return $this->error('Erreur', ['errors_msg' => ["Une erreur s'est produite lors de la création du compte."]]);
         }
     }
 
@@ -123,20 +141,24 @@ class AdminController extends Controller
             }
             $a->operateur = $op;
             $a->date = $e->date->format('d-m-Y H:i:s');
+            $a->data = json_decode($e->data);
             array_push($tab, $a);
         }
 
-        $m = "Transactions";
+        $n = count($tab);
+        $m = "TRANSACTIONS ($n)";
         return $this->success($m, $tab);
     }
 
     public function envoi_fonds()
     {
-        $trans = DemandeTransfert::orderBy('status')->get();
+        $trans = DemandeTransfert::orderBy('id', 'DESC')->orderBy('status')->get();
         $tab = [];
         foreach ($trans as $e) {
             $a = new stdClass();
             $a->id = $e->id;
+            $a->trans_id = $e->trans_id;
+            $a->business_name = $e->solde->compte->user->business_name;
             $a->marchand = $e->solde->compte->user->name;
             $a->numero_compte = $e->solde->compte->numero_compte;
             $a->au_numero = $e->au_numero;
@@ -147,14 +169,16 @@ class AdminController extends Controller
             foreach ($solde as $so) {
                 array_push($s, formatMontant($so->montant, $so->devise->devise));
             }
-            $a->solde = implode(',', $s);
+            $a->solde = $s;
             $a->status = $e->status;
             $a->note_validation = $e->note_validation;
             $a->date = $e->date->format('d-m-Y H:i:s');
+            $a->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
             array_push($tab, $a);
         }
 
-        $m = "Demandes tranfert fonds";
+        $n = count($tab);
+        $m = "DEMANDES DE TRANSFERT DES FONDS ($n)";
         return $this->success($m, $tab);
     }
 
@@ -170,14 +194,37 @@ class AdminController extends Controller
         );
 
         if ($validator->fails()) {
-            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        $dem = DemandeTransfert::where('id', request()->id)->first();
+        if ($dem->date_validation) {
+            return $this->error('Vous ne pouvez plus modifier le status de cette demande');
         }
 
         $data = $validator->validated();
-        $data['note_validation'] = request()->note_validation ?? "Demande traité avec succès";
+        $nv = request()->note_validation;
+        $data['note_validation'] = $nv ? strtoupper($nv) : strtoupper("DEMAMDE TRAITEE AVEC SUCCESS : [") . request()->status . "]";
         $id = $data['id'];
         unset($data['id']);
-        DemandeTransfert::where('id', $id)->update($data);
+        $data['date_validation'] = now('Africa/Lubumbashi');
+
+        DB::beginTransaction();
+        if (request()->status == 'TRAITÉE') {
+            $solde  = $dem->solde->montant;
+            $montant = $dem->montant;
+            $bus = $dem->solde->compte->user->business_name;
+
+            if ($solde < $montant) {
+                $s = formatMontant($solde, $dem->solde->devise->devise);
+                $m = formatMontant($montant, $dem->solde->devise->devise);
+                return $this->error("$bus a un solde de $s, imposible de traiter cette demande de $m");
+            }
+            $dem->solde->decrement('montant', $montant);
+        }
+
+        $dem->update($data);
+        DB::commit();
         return $this->success("La demande a été mise à jour.");
     }
 
@@ -192,14 +239,14 @@ class AdminController extends Controller
         );
 
         if ($validator->fails()) {
-            return $this->error('Validation error', 400, ['errors_msg' => $validator->errors()->all()]);
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
         $data = $validator->validated();
         unset($data['id']);
         $k =  Apikey::where('id', request()->id)->first();
         $k->update($data);
 
-        if (request()->status == 1) {
+        if (request()->active == 1) {
             $m = "La clé API($k->type) du marchand {$k->user->name} a été activée.";
         } else {
             $m = "La clé API($k->type) du marchand {$k->user->name} a été bloquée.";

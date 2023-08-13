@@ -2,11 +2,14 @@
 
 use App\Models\Apikey;
 use App\Models\Compte;
+use App\Models\DemandeTransfert;
+use App\Models\Devise;
 use App\Models\Fp;
+use App\Models\Solde;
+use App\Models\SoldeApp;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 define('FLEXPAY_HEADERS', [
     "Content-Type: application/json",
@@ -14,6 +17,7 @@ define('FLEXPAY_HEADERS', [
 ]);
 define('MARCHAND', 'GROUPER');
 define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
+define('COMMISSION', 0.03);
 
 // function getMimeType($filename)
 // {
@@ -38,7 +42,7 @@ function encode($str, $encrypt = true)
 {
     $output = false;
     $encrypt_method = "AES-256-CBC";
-    $secret_key = '1001';
+    $secret_key = '781227';
     $secret_iv = '2002';
     $key = hash('sha256', $secret_key);
     $iv = substr(hash('sha256', $secret_iv), 0, 16);
@@ -95,18 +99,34 @@ function makeRand($max = 5)
     return $num;
 }
 
-function trans_id()
+function zero($val, int $n = 4)
 {
-    $tr = Transaction::where('type', 'transfert')->get();
+    if ($n <= 0) return $val;
+    $vallen = strlen($val);
+    if ($vallen == $n) return $val;
+    $zero = $n - $vallen;
+    if ($zero <= 0) return $val;
+
+    $t = [];
+    while ($zero) {
+        $t[] = 0;
+        $zero--;
+    }
+    return  implode($t) . $val;
+}
+
+function trans_id($type, $user)
+{
+    if ($type == 'CASH.IN') {
+        $tr = Transaction::where('compte_id',  $user->comptes()->first()->id)->get();
+    } else if ($type == 'CASH.OUT') {
+        $tr = DemandeTransfert::whereIn('solde_id',  $user->comptes()->first()->soldes()->pluck('id')->all())->get();
+    } else {
+        die;
+    }
     $n = $tr->count() + 1;
 
-    if ($n < 10) {
-        $c = "TRANS-00$n";
-    } else if ($n >= 10 and $n < 100) {
-        $c = "TRANS-0$n";
-    } else {
-        $c = "TRANS-$n";
-    }
+    $c = strtoupper("$type-") . zero($n, 4);
     $c = $c . '.' . makeRand() . '.' . makeRand();
     return $c;
 }
@@ -161,12 +181,15 @@ function completeFlexpayTrans()
 {
     $pendingPayments = Fp::where(['callback' => '1', 'is_saved' => '0', 'transaction_was_failled' => '0'])->get();
     foreach ($pendingPayments as $e) {
-        $payedata = json_decode($e->pay_data);
-        $orderNumber = $payedata->apiresponse->orderNumber;
-        if (transaction_was_success($orderNumber) == true) {
-            saveData($payedata, $e);
+        $paydata = json_decode($e->pay_data);
+        $orderNumber = $paydata->apiresponse->orderNumber;
+        $t = transaction_was_success($orderNumber);
+        if ($t === true) {
+            saveData($paydata, $e);
         } else {
-            $e->update(['transaction_was_failled' => 1]);
+            if ($t === false) {
+                $e->update(['transaction_was_failled' => 1]);
+            }
         }
     }
 }
@@ -183,7 +206,7 @@ function transaction_was_success($orderNumber)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 300);
     $response = curl_exec($ch);
-    $status = false;
+    $status = null;
     if (!curl_errno($ch)) {
         curl_close($ch);
         $jsonRes = json_decode($response);
@@ -191,7 +214,11 @@ function transaction_was_success($orderNumber)
         if ($code == "0") {
             if ($jsonRes->transaction->status == '0') {
                 $status = true;
+            } else {
+                $status = false;
             }
+        } else {
+            $status = false;
         }
     }
     return $status;
@@ -206,9 +233,96 @@ function saveData($payedata, $e)
         $trans_data = (array) $payedata->paydata->trans_data;
         DB::beginTransaction();
         Transaction::create($trans_data);
-        $solde = $compte->soldes()->where(['devise_id' => $trans_data['devise_id']]);
-        $solde->increment('montant', $trans_data['montant']);
-        DB::commit();
+        $did = $trans_data['devise_id'];
+        $mt = $trans_data['montant'];
+        $solde = $compte->soldes()->where(['devise_id' => $did]);
+        $solde->increment('montant', $mt);
+        $dev = strtolower(Devise::where('id', $did)->first()->devise);
+        $appsolde = SoldeApp::first();
+        $inc = $mt * COMMISSION;
+
+        if (!$appsolde) {
+            SoldeApp::create(["solde_$dev" => $inc]);
+        } else {
+            SoldeApp::first()->increment("solde_$dev", $inc);
+        }
         $e->update(['is_saved' => 1]);
+        DB::commit();
     }
+}
+
+function total_transaction()
+{
+    $tot = Transaction::selectRaw('*,sum(montant) as montant')->groupBy('devise_id')->get()->pluck('montant', 'devise.devise')->all();
+    $t = [];
+    foreach ($tot as $k => $v) {
+        $t[$k] = $v;
+    }
+    @$t['CDF'] ?: ($t['CDF'] = 0.0);
+    @$t['USD'] ?: ($t['USD'] = 0.0);
+    return order_dev($t);
+}
+
+function total_cashout()
+{
+    $tot = DB::select("SELECT sum(demande_transfert.montant) as montant, devise FROM solde JOIN devise ON devise.id=solde.devise_id JOIN demande_transfert ON demande_transfert.solde_id=solde.id WHERE demande_transfert.status='TRAITÉE' GROUP BY solde.devise_id");
+    $t = [];
+    foreach ($tot as $e) {
+        $t[$e->devise] = $e->montant;
+    }
+    @$t['CDF'] ?: ($t['CDF'] = 0.0);
+    @$t['USD'] ?: ($t['USD'] = 0.0);
+    return order_dev($t);
+}
+
+function tot_solde_marchand($idcompte = null, $commission = false)
+{
+    $tot = Solde::selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
+    if ($idcompte) {
+        $tot = $tot->where('compte_id', $idcompte);
+    }
+
+    $tot = $tot->get()->pluck('montant', 'devise.devise')->all();
+    $t = [];
+    foreach ($tot as $k => $v) {
+        $t[$k] = $v;
+    }
+    @$t['CDF'] ?: ($t['CDF'] = 0.0);
+    @$t['USD'] ?: ($t['USD'] = 0.0);
+
+    if ($commission) {
+        $t['CDF'] -= $t['CDF'] * COMMISSION;
+        $t['USD'] -= $t['USD'] * COMMISSION;
+    }
+
+    return order_dev($t);
+}
+
+function solde()
+{
+    $soldepp = SoldeApp::first();
+
+    $CDF = (float) @$soldepp->solde_cdf;
+    $USD = (float) @$soldepp->solde_usd;
+    $t = compact('CDF', 'USD');
+    return order_dev($t);
+}
+
+function order_dev($tab)
+{
+    $u = $tab['USD'];
+    unset($tab['USD']);
+    $tab['USD'] = $u;
+    return $tab;
+}
+
+function all_trans()
+{
+    $tab['solde'] = solde();
+    $tab['cashout'] = total_cashout();
+    $tab['trans'] = total_transaction();
+    $tab['solde_marchand'] = tot_solde_marchand(null, true);
+
+    $tab['nb_trans'] = Transaction::count();
+    return (object) $tab;
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\AdminController;
 use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\api\MarchandController;
 use App\Http\Controllers\api\PayementController;
 use App\Http\Controllers\api\RecoveryController;
 use App\Http\Controllers\api\UserController;
@@ -15,31 +16,34 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 });
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
+    Route::get('/ping', function () {
+        return now('Africa/Lubumbashi');
+    })->name('ping');
     ########### SOLDE & TRANSFERT
-    Route::get('/solde/{devise?}', [PayementController::class, 'solde']); //liste solde user
-    Route::get('/numero-compte', [PayementController::class, 'numero_compte']); //affiche le numero de compte du user
+    Route::get('/solde/{devise?}', [MarchandController::class, 'solde'])->name('marchand.api.solde'); //liste solde user
+    Route::get('/numero-compte', [MarchandController::class, 'numero_compte'])->name('marchand.api.num_compte'); //affiche le numero de compte du user
 
-    Route::get('/transaction', [PayementController::class, 'transaction']); //liste transaction
-    Route::post('/demande-transfert', [PayementController::class, 'demande_tranfert']); //demande tranfert de fonds
-    Route::get('/demande-transfert', [PayementController::class, 'get_demande_tranfert']);
+    Route::get('/transaction', [MarchandController::class, 'transaction'])->name('marchand.api.trans'); //liste transaction
+    Route::post('/demande-transfert', [MarchandController::class, 'demande_tranfert'])->name('marchand.api.demande_trans'); //demande tranfert de fonds
+    Route::get('/demande-transfert', [MarchandController::class, 'get_demande_tranfert']);
     // Route::post('/transfert', [PayementController::class, 'transfert']); //transfert argent vers un compte
 
     #==========   User & Key =======#
-    Route::post('/user/update', [UserController::class, 'update']); //update
-    Route::post('/user/pass', [UserController::class, 'update_pass']); //update password
+    Route::post('/user/update', [UserController::class, 'update'])->name('marchand.api.update_compte'); //update
+    Route::post('/user/pass', [UserController::class, 'update_pass'])->name('marchand.api.update_passe'); //update password
     Route::get('/user/me', [UserController::class, 'me']); //profil
 
     Route::get('/user/keys', [UserController::class, 'keys']); // api keys
 
     ################### ADMIN ROUTES #################
     Route::middleware('admin.mdwr')->group(function () {
-        Route::get('/admin/feedback', [AdminController::class, 'feedback']);
-        Route::get('/admin/marchand', [AdminController::class, 'marchand']);
+        Route::get('/admin/feedback', [AdminController::class, 'feedback'])->name('admin.api.feedback');
+        Route::get('/admin/marchand', [AdminController::class, 'marchand'])->name('admin.api.marchand');
         Route::post('/admin/marchand', [AdminController::class, 'marchand_add']);
-        Route::get('/admin/transaction', [AdminController::class, 'transaction']);
-        Route::get('/admin/envoi-fonds', [AdminController::class, 'envoi_fonds']);
+        Route::get('/admin/transaction', [AdminController::class, 'transaction'])->name('admin.api.trans');
+        Route::get('/admin/envoi-fonds', [AdminController::class, 'envoi_fonds'])->name('admin.api.cashout');
         Route::post('/admin/envoi-fonds', [AdminController::class, 'maj_envoi_fonds']);
-        Route::post('/admin/apikey-status', [AdminController::class, 'apikey_status']);
+        Route::post('/admin/apikey-status', [AdminController::class, 'apikey_status'])->name('admin.api.apikeys');
     });
 });
 
@@ -51,10 +55,12 @@ Route::get('/operateur', [PayementController::class, 'operateur']);
 Route::post('/user/recovery', [RecoveryController::class, 'recovery']);
 Route::post('/user/recovery/check', [RecoveryController::class, 'check']);
 
-Route::post('/feedback', [UserController::class, 'feedback']);
+Route::post('/feedback', [UserController::class, 'feedback'])->name('feedback');
 
 ########## MARCHAND PAIEMENT #########
 Route::middleware('paymentProd.mdwr')->group(function () {
-    Route::post('/payment/init', [PayementController::class, 'payinit']); //initiaiser un paiement
-    Route::post('/payment/check/{ref?}', [PayementController::class, 'paycheck']); //verifier le paiement
+    Route::prefix('v1')->group(function () {
+        Route::post('/payment/init', [PayementController::class, 'payinit'])->name('pay.init'); //initiaiser un paiement
+        Route::post('/payment/check/{ref?}', [PayementController::class, 'paycheck'])->name('pay.check'); //verifier le paiement
+    });
 });

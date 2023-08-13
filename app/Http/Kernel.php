@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'paymentProd.mdwr' => \App\Http\Middleware\app\PaymentProduction::class,
         'paymentTest.mdwr' => \App\Http\Middleware\app\PaymentTest::class,
         'admin.mdwr' => \App\Http\Middleware\app\AdminMiddleware::class,
+        'marchand.mdwr'=>\App\Http\Middleware\app\MarchandMiddleware::class,
     ];
 }

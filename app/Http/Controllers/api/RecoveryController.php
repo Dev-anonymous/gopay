@@ -26,7 +26,7 @@ class RecoveryController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return $this->error('Validation error', 200, ['errors_msg' => $validator->errors()->all()]);
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
         $login = trim(request()->login);
 
@@ -40,7 +40,7 @@ class RecoveryController extends Controller
             $email = $u->email;
             $phone = $u->phone;
             if (empty($email)) {
-                return $this->error("Aucune adresse email trouvée, il est impossible de vous envoyer le code de réinitialisation du mot de passe.", 200, ['errors_msg' => []]);
+                return $this->error("Aucune adresse email trouvée, il est impossible de vous envoyer le code de réinitialisation du mot de passe.", ['errors_msg' => []]);
             }
 
             while (1) {
@@ -56,10 +56,10 @@ class RecoveryController extends Controller
                 Recovery::where('users_id', $u->id)->delete();
                 Recovery::create(['date' => now('Africa/Lubumbashi'), 'code' => $code, 'users_id' => $u->id]);
             } catch (\Throwable $th) {
-                return $this->error("Impossible d'envoyer le code, veuiller réessayer.", 200, ['errors_msg' => []]);
+                return $this->error("Impossible d'envoyer le code, veuiller réessayer.", ['errors_msg' => []]);
             }
         } else {
-            return $this->error("Aucun compte trouvé pour $login", 200, ['errors_msg' => []]);
+            return $this->error("Aucun compte trouvé pour $login", ['errors_msg' => []]);
         }
 
         return $this->success("Le code de réinitialisation du mot de passe a été envoyé à l'adresse $email.");
@@ -77,19 +77,19 @@ class RecoveryController extends Controller
             'newpassword' => 'required|string|min:3|',
         ]);
         if ($validator->fails()) {
-            return $this->error('Validation error', 200, ['errors_msg' => $validator->errors()->all()]);
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
 
         $code = request()->code;
         $pass = request()->newpassword;
         $rec  = Recovery::where('code', $code)->first();
         if (!$rec) {
-            return $this->error("Le code $code est incorrect", 200, ['errors_msg' => []]);
+            return $this->error("Le code $code est incorrect", ['errors_msg' => []]);
         }
 
         $rec->user->update(['password' => Hash::make($pass)]);
         $rec->user->tokens()->delete();
         $rec->delete();
-        return $this->success("Votre mot de passe a été réinitialisisé.", ['token' => $rec->user->createToken('token_' . time())->plainTextToken]);
+        return $this->success("Votre mot de passe a été réinitialisé.", ['token' => $rec->user->createToken('token_' . time())->plainTextToken]);
     }
 }
