@@ -53,7 +53,7 @@
     window.addEventListener('resize', setMode);
 </script>
 
-{{-- <script src='https://zbot.gooomart.com/zbot/QWtjeGRsM0tPK0xKSlZOU1FLWUVIZz09' async></script> --}}
+<script src='https://zbot.gooomart.com/zbot/QWtjeGRsM0tPK0xKSlZOU1FLWUVIZz09' async></script>
 
 <script>
     @if (!Auth::check())

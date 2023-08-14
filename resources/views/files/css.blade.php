@@ -1,4 +1,4 @@
-{{-- <style>
+<style>
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -18,7 +18,7 @@
         scrollbar-width: thin;
         scrollbar-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.05);
     }
-</style> --}}
+</style>
 
 {{-- <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" /> --}}
@@ -64,7 +64,7 @@ href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&amp;display
     }
 </style>
 
-<link rel='shortcut icon' type='image/x-icon' href="{{ asset('img/favicon.png') }}" />
+<link rel='shortcut icon' type='image/x-icon' href="{{ asset('img/icon.png') }}" />
 {{-- <style>
     .bg-error {
         background: rgba(255, 0, 0, 0.1)

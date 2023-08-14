@@ -6,7 +6,7 @@
      <meta name="format-detection" content="telephone=no">
      <meta name="apple-mobile-web-app-capable" content="yes">
      <title>Accueil - {{ config('app.name') }} </title>
-     <link rel='shortcut icon' type='image/x-icon' href="{{ asset('img/favicon.png') }}" />
+     <link rel='shortcut icon' type='image/x-icon' href="{{ asset('img/icon.png') }}" />
 
      <link rel="stylesheet" href="{{ asset('css/fontawesome-6.4.2/css/all.css') }}">
      <link rel="stylesheet" href="{{ asset('css/bs4.min.css') }}" />
@@ -448,6 +448,8 @@
              });
          })
      </script>
+     <script src='https://zbot.gooomart.com/zbot/QWtjeGRsM0tPK0xKSlZOU1FLWUVIZz09' async></script>
+
  </body>
 
  </html>
