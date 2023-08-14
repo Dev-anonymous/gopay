@@ -102,7 +102,7 @@
                  <p class="text-center w-responsive mx-auto my-5 text-dark font-weight-bold wow fadeIn"
                      data-wow-delay="0.2s">
                      Vous avez opté pour les paiements électroniques ? {{ config('app.name') }} vous offre la
-                     possibilité de recevoir le paiement sur votre plateforme.
+                     possibilité de recevoir les paiements sur votre plateforme.
                  </p>
                  <div class="row features-small wow fadeIn text-dark" data-wow-delay="0.4s">
                      <div class="col-lg-4 col-md-12">
