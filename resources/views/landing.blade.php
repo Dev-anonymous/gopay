@@ -102,9 +102,7 @@
                  <p class="text-center w-responsive mx-auto my-5 text-dark font-weight-bold wow fadeIn"
                      data-wow-delay="0.2s">
                      Vous avez opté pour les paiements électroniques ? {{ config('app.name') }} vous offre la
-                     possibilité
-                     de recevoir de
-                     recevoir le paiement sur votre plateforme.
+                     possibilité de recevoir le paiement sur votre plateforme.
                  </p>
                  <div class="row features-small wow fadeIn text-dark" data-wow-delay="0.4s">
                      <div class="col-lg-4 col-md-12">
@@ -115,7 +113,7 @@
                              <div class="col-10 mb-2">
                                  <h5 class="font-weight-bold text-dark ">Intégration WEB</h5>
                                  <p class="text-dark">
-                                     Intégrer facilement l'API {{ config('app.name') }} à vos sites web en toute
+                                     Intégrez facilement l'API {{ config('app.name') }} à vos sites web en toute
                                      simplicité.
                                  </p>
                              </div>
@@ -127,7 +125,7 @@
                              <div class="col-10 mb-2">
                                  <h5 class="font-weight-bold text-dark">Intégration Android & iOS</h5>
                                  <p class="text-dark">
-                                     L'API peut également être intégrée à vos application Android et iOS.
+                                     L'API peut également être intégrée à vos applications Android et iOS.
                                  </p>
                              </div>
                          </div>
