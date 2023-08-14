@@ -49,25 +49,28 @@
      <header>
          <x-nav-app />
 
-         <section class="view intro-2" style="background-image: url('{{ asset('img/62.jpg') }}');">
+         <section class="view intro-2" style="background-image: url('{{ asset('img/d.png') }}');">
              <div class="mask">
                  <div class="container h-100 d-flex justify-content-center align-items-center">
                      <div class="row flex-center pt-5 mt-3">
-                         <div class="col-md-12 col-lg-6 text-center text-md-left margins">
-                             <div class="dark-grey-textfff">
-                                 <h1 class="display-4 mt-5 font-weight-bold wow fadeIn text-dark" data-wow-delay="0.3s">
-                                     <strong>
+                         <div class="col-md-12 col-lg-6 text-center text-md-left text-white">
+                             <div class="dark-grey-text p-3 mt-5"
+                                 style="background: rgba(0,0,0,.25); border-radius: 10px">
+                                 <h1 class="display-4 mt-5 font-weight-bold wow fadeIn" data-wow-delay="0.3s">
+                                     <strong class="text-white">
                                          {{ config('app.name') }}
                                      </strong>
-                                     <strong style="font-size: 12px" class="text-warning">Powered By Gooomart</strong>
+                                     <strong style="font-size: 10px"
+                                         class="text-dark bg-warning rounded-pill p-1">Powered By Gooomart</strong>
                                  </h1>
                                  <hr class="hr-light wow fadeIn" data-wow-delay="0.3s">
-                                 <h5 class="text-muted wow fadeIn font-weight-bold" data-wow-delay="0.3s">
+                                 <h5 class="text-white wow fadeIn font-weight-bold" data-wow-delay="0.3s">
                                      Nous travaillons durement pour vous faciliter et sécuriser vos paiements en ligne.
                                      Maximiser vos chiffres d'affaires en optant pour les paiements électroniques grâce
                                      à
                                      {{ config('app.name') }} ! c'est
-                                     <span class="text-dark font-weight-bold">
+                                     <span class="font-weight-bold font-italic"
+                                         style="color: #050101; text-shadow: 1px 1px #fb3">
                                          simple, rapide et sécurisé !
                                      </span>
                                  </h5>
