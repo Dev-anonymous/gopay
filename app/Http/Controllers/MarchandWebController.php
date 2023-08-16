@@ -46,6 +46,17 @@ class MarchandWebController extends Controller
         return view('marchand.cash_out', compact('trans'));
     }
 
+    public function cash_in()
+    {
+        $req = app()->handle(Request::create(route('marchand.api.trans'), 'GET', ['source' => 'E-PAY']));
+        if ($req->status() != 200) {
+            $trans = [];
+        } else {
+            $trans = json_decode($req->getContent())->data;
+        }
+        return view('marchand.cash_in', compact('trans'));
+    }
+
     public function compte()
     {
 
@@ -60,7 +71,6 @@ class MarchandWebController extends Controller
 
     public function lien_pay()
     {
-        $data=[];
-        return view('marchand.lien_pay', compact('data'));
+        return view('marchand.lien_pay');
     }
 }

@@ -78,6 +78,12 @@
                         Accepter les paiements</a>
                     <ul class="sidenav-collapse">
                         <li class="sidenav-item">
+                            <a class="sidenav-link" link href="{{ route('marchand.web.cashin') }}">
+                                <i class="fa-solid fa-check-double p-1"></i>
+                                Accepter un paiement
+                            </a>
+                        </li>
+                        <li class="sidenav-item">
                             <a class="sidenav-link" link href="{{ route('marchand.web.lien_pay') }}">
                                 <i class="fa-solid fa-money-bill-1 p-1"></i>
                                 Lien de paiement

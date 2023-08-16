@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/payment-callback/{cb_code?}', [PayementController::class, 'payCallBack'])->name('payment.callback.web');
+Route::get('/payment/{id?}', [PayementController::class, 'accept_pay'])->name('payment.accept_pay.web');
 
 Route::get('', [AppController::class, 'index'])->name('app.index');
 Route::get('login', [AppController::class, 'login'])->name('app.login');
@@ -32,6 +33,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::get('', [MarchandWebController::class, 'index'])->name('marchand.web.index');
             Route::get('transaction', [MarchandWebController::class, 'transaction'])->name('marchand.web.trans');
             Route::get('cash-out', [MarchandWebController::class, 'cash_out'])->name('marchand.web.cashout');
+            Route::get('cash-in', [MarchandWebController::class, 'cash_in'])->name('marchand.web.cashin');
             Route::get('integration', [MarchandWebController::class, 'integration'])->name('marchand.web.integration');
             Route::get('account', [MarchandWebController::class, 'compte'])->name('marchand.web.compte');
             Route::get('pay-link', [MarchandWebController::class, 'lien_pay'])->name('marchand.web.lien_pay');

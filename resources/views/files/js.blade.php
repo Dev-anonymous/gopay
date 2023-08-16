@@ -29,6 +29,10 @@
 {{-- <script src="{{ asset('js/admin.js') }}"></script> --}}
 
 <script type="text/javascript">
+    $(window).on('load', function() {
+        $('.loader').fadeOut();
+    });
+
     const sidenav = document.getElementById('app-sidebar');
     const instance = mdb.Sidenav.getInstance(sidenav);
     let innerWidth = null;

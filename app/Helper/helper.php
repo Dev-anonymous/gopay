@@ -326,3 +326,25 @@ function all_trans()
     $tab['nb_trans'] = Transaction::count();
     return (object) $tab;
 }
+
+
+function mask_num($num)
+{
+    $num = (int) $num;
+    $num = substr($num, 3);
+    $pref = substr($num, 0, 4);
+    $suf = substr($num, -2);
+    $mask = "0{$pref}xxx$suf";
+    return $mask;
+}
+
+function makepay_link(int $id)
+{
+    $encode = encode($id);
+    $url = route('payment.accept_pay.web', $encode);
+    return $url;
+}
+function getpay_link($encoded)
+{
+    return  (int) encode($encoded, false);
+}

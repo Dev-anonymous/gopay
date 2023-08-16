@@ -7,6 +7,7 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>@yield('title') - {{ config('app.name') }} </title>
+    <x-meta />
     @yield('meta')
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     @include('files.css')
@@ -14,6 +15,7 @@
 </head>
 
 <body>
+    <x-loader/>
 
     @yield('body')
 

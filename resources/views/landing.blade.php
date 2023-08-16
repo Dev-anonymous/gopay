@@ -8,6 +8,8 @@
      <title>Accueil - {{ config('app.name') }} </title>
      <link rel='shortcut icon' type='image/x-icon' href="{{ asset('img/icon.png') }}" />
 
+     <x-meta />
+
      <link rel="stylesheet" href="{{ asset('css/fontawesome-6.4.2/css/all.css') }}">
      <link rel="stylesheet" href="{{ asset('css/bs4.min.css') }}" />
      <link rel="stylesheet" href="{{ asset('css/mdb4.min.css') }}" />
@@ -46,6 +48,7 @@
  </head>
 
  <body class="creative-lp">
+     <x-loader />
      <header>
          <x-nav-app />
 
@@ -217,7 +220,7 @@
                      <strong>Nous contacter</strong>
                  </h3>
                  <p class="text-center text-dark h2 mb-3 h5 w-responsive mx-auto wow fadeIn" data-wow-delay="0.2s">
-                     Besoin d'un reinseignement ? veuillez laisser votre message, suggestion ou préoccupation et nous
+                     Besoin d'un renseignement ? veuillez laisser votre message, suggestion ou préoccupation et nous
                      reviendrons à vous si nécessaire.
                  </p>
                  <div class="row wow fadeIn p-5" data-wow-delay="0.4s">
@@ -392,6 +395,9 @@
 
      <script>
          new WOW().init();
+         $(window).on('load', function() {
+             $('.loader').fadeOut();
+         });
      </script>
      <script src="{{ asset('js/jquery.mask.min.js') }}"></script>
      <script>

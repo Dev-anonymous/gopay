@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold"> Transactions ({{ count($trans) }})</h3>
+                        <h3 class="font-weight-bold">   TRANSACTIONS     ({{ count($trans) }})</h3>
                         <div>
                             <select name="" id="Type" class="form-control" disabled>
                                 <option value="">VALIDEES</option>

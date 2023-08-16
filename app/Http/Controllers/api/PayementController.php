@@ -26,7 +26,7 @@ class PayementController extends Controller
             request()->all(),
             [
                 'devise' => 'required|in:CDF,USD',
-                'montant' => 'required|numeric|',
+                'amount' => 'required|integer|',
                 'telephone' => 'required|min:1|regex:/(243)[0-9]{9}/',
             ]
         );
@@ -35,12 +35,21 @@ class PayementController extends Controller
             return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
 
+        $_source = request()->_source;
+
+        if (!in_array($_source, ['E-PAY'])) {
+            $_source = 'API';
+        }
         $dev = request()->devise;
-        $montant = request()->montant;
+        $montant = request()->amount;
         $telephone = request()->telephone;
 
-        if ($dev == 'CDF' && $montant < 500) {
-            return $this->error('Validation error', ['errors_msg' => ["Le montant minimum de paiement est de 500 $dev"]]);
+        if ($dev == 'CDF' and $montant < 500) {
+            return $this->error("Le montant minimum de paiement est de 500 CDF");
+        } else {
+            if ($montant < 1) {
+                return $this->error("Le montant minimum de paiement est de 1 USD");
+            }
         }
 
         $user = getUser();
@@ -54,7 +63,7 @@ class PayementController extends Controller
             'montant' => $montant,
             'telephone' => $telephone,
             'trans_data' => [
-                'source' => 'API',
+                'source' => $_source,
                 'compte_id' => $compte->id,
                 'devise_id' => Devise::where('devise', $dev)->first()->id,
                 'montant' => $montant,
@@ -91,23 +100,27 @@ class PayementController extends Controller
             return $this->error('Ref ?', 400);
         }
         $ok =  false;
-        $flex = Fp::where(['ref' => $ref])->first();
+        $flex = Fp::where(['ref' => $ref, 'transaction_was_failled' => 0])->first();
 
         if ($flex) {
             $orderNumber = @json_decode($flex->pay_data)->apiresponse->orderNumber;
             if ($orderNumber) {
-                $success = transaction_was_success($orderNumber);
-                if ($success) {
+                $t = transaction_was_success($orderNumber);
+                if ($t === true) {
                     if ($flex->is_saved != 1) {
                         $paydata = json_decode($flex->pay_data);
                         saveData($paydata, $flex);
                         $ok =  true;
                     }
+                } else {
+                    if ($t === false) {
+                        $flex->update(['transaction_was_failled' => 1]);
+                    }
                 }
             }
         }
 
-        if ($ok || $flex->is_saved == 1) {
+        if ($ok || @$flex->is_saved == 1) {
             return $this->success("Votre transaction est effectuée avec succès.");
         } else {
             $m = "Aucune transaction trouvée.";
@@ -125,5 +138,9 @@ class PayementController extends Controller
     {
         $dev = Operateur::get(['id', 'operateur']);
         return $this->success("Liste operateurs", $dev);
+    }
+
+    public function accept_pay($id = null){
+        
     }
 }

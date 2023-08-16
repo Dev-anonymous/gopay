@@ -25,8 +25,12 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/transaction', [MarchandController::class, 'transaction'])->name('marchand.api.trans'); //liste transaction
     Route::post('/demande-transfert', [MarchandController::class, 'demande_tranfert'])->name('marchand.api.demande_trans'); //demande tranfert de fonds
-    Route::get('/demande-transfert', [MarchandController::class, 'get_demande_tranfert']);
-    // Route::post('/transfert', [PayementController::class, 'transfert']); //transfert argent vers un compte
+    Route::post('/demande-transfert', [MarchandController::class, 'demande_tranfert'])->name('marchand.api.demande_trans');
+    Route::post('/pay/init', [MarchandController::class, 'pay_init'])->name('marchand.api.marchand_pay_init');
+    Route::post('/pay/check', [MarchandController::class, 'pay_check'])->name('marchand.api.marchand_pay_check');
+    Route::get('/pay-link', [MarchandController::class, 'getpay_link'])->name('marchand.api.pay_link');
+    Route::post('/pay-link', [MarchandController::class, 'pay_link']);
+    Route::delete('/pay-link/{id}', [MarchandController::class, 'pay_link_del']);
 
     #==========   User & Key =======#
     Route::post('/user/update', [UserController::class, 'update'])->name('marchand.api.update_compte'); //update

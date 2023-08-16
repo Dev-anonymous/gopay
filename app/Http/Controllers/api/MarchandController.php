@@ -5,6 +5,7 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\DemandeTransfert;
 use App\Models\Devise;
+use App\Models\LienPaie;
 use App\Models\Transaction;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
@@ -42,7 +43,7 @@ class MarchandController extends Controller
                 }
             }
         }
-        return $this->success('Votre solde', $r);
+        return $this->success('SOLDE', $r);
     }
     public function transfert()
     {
@@ -119,6 +120,11 @@ class MarchandController extends Controller
             $trans = $trans->limit($limte);
         }
 
+        $source = request()->source;
+        if ($source == 'E-PAY') {
+            $trans = $trans->where('source', $source);
+        }
+
         $trans = $trans->orderBy('id', 'desc')->get();
 
         $tab = [];
@@ -130,16 +136,19 @@ class MarchandController extends Controller
             $a->montant = formatMontant($e->montant, $e->devise->devise);
             $a->type = $e->type;
             $a->source = $e->source;
-            $op =  $e->operateur;
-            if ($op) {
-                $op = ['operateur' => $op->operateur, 'image' => asset('storage/' . $op->image)];
-            }
-            $a->operateur = $op;
+            $d = json_decode($e->data);
+            $a->tel = mask_num(@$d->telephone);
+            $a->ref = @$d->ref;
+            // $op =  $e->operateur;
+            // if ($op) {
+            //     $op = ['operateur' => $op->operateur, 'image' => asset('storage/' . $op->image)];
+            // }
+            // $a->operateur = $op;
             $a->date = $e->date->format('d-m-Y H:i:s');
             array_push($tab, $a);
         }
 
-        $m = "Vos transactions";
+        $m = "TRANSACTIONS";
         return $this->success($m, $tab);
     }
 
@@ -214,7 +223,7 @@ class MarchandController extends Controller
             $o->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
             array_push($tab, $o);
         }
-        return $this->success("Vos demandes de tranfert", $tab);
+        return $this->success("DEMANDES DE TRANSFERT", $tab);
     }
 
     public function numero_compte()
@@ -223,6 +232,153 @@ class MarchandController extends Controller
         $user = auth()->user();
         $compte = $user->comptes()->first();
         $n = $compte->numero_compte;
-        return $this->success("Mon numero de compte", $n);
+        return $this->success("NUMERO DE COMPTE", $n);
+    }
+
+    public function pay_init()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'devise' => 'required|in:CDF,USD',
+                'amount' => 'required|integer|',
+                'telephone' => 'required|min:1|regex:/(\+243)[0-9]{9}/',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+        $devise = request()->devise;
+        $montant = request()->amount;
+        $telephone = request()->telephone;
+
+        if ($devise == 'CDF' and $montant < 500) {
+            return $this->error("Le montant minimum de paiement est de 500 CDF");
+        } else {
+            if ($montant < 1) {
+                return $this->error("Le montant minimum de paiement est de 1 USD");
+            }
+        }
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $key = $user->apikeys()->where('type', 'production')->first()->key;
+
+
+        $params = [
+            '_source' => 'E-PAY',
+            'devise' => $devise,
+            'amount' => $montant,
+            'telephone' => $telephone
+        ];
+
+        $request = Request::create(route('pay.init'), 'POST', $params);
+        $request->headers->set('x-api-key', $key);
+        $req = app()->handle($request);
+        if ($req->status() != 200) {
+            return $this->error("Une erreur s'est produite, veuillez réessayer.");
+        } else {
+            $data = json_decode($req->getContent());
+        }
+
+        return response()->json((array) $data);
+    }
+
+    public function pay_check()
+    {
+        $ref = request()->ref;
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $key = $user->apikeys()->where('type', 'production')->first()->key;
+        $request = Request::create(route('pay.check', $ref), 'POST');
+        $request->headers->set('x-api-key', $key);
+        $req = app()->handle($request);
+        if ($req->status() != 200) {
+            return $this->error("Une erreur s'est produite, veuillez réessayer.");
+        } else {
+            $data = json_decode($req->getContent());
+        }
+
+        return response()->json((array) $data);
+    }
+
+    public function getpay_link()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $idcompte = $user->comptes()->first()->id;
+        $links = LienPaie::where('compte_id', $idcompte)->orderBy('id', 'DESC')->get();
+        $tab = [];
+        foreach ($links as $e) {
+            $a = (object) [];
+            $a->id = $e->id;
+            $a->nom = $e->nom;
+            $a->montant = formatMontant($e->montant, $e->devise);
+            $a->montant_fixe = $e->montant_fixe;
+            $a->devise_fixe = $e->devise_fixe;
+            $a->date = $e->date->format('d-m-Y H:i:s');
+            $a->lien = makepay_link($e->id);
+            $tab[] = $a;
+        }
+        return $this->success("LIENS DE PAIEMENTS", $tab);
+    }
+
+    public function pay_link()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'devise' => 'required|in:CDF,USD',
+                'amount' => 'required|integer|',
+                'nom' => 'required',
+                'montant_fixe' => 'sometimes',
+                'devise_fixe' => 'sometimes',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        $nom = request()->nom;
+        $devise = request()->devise;
+        $montant = request()->amount;
+        $montant_fixe = !request()->has('montant_fixe');
+        $devise_fixe = !request()->has('devise_fixe');
+
+        if ($devise == 'CDF' and $montant < 500) {
+            return $this->error("Le montant minimum de paiement est de 500 CDF");
+        } else {
+            if ($montant < 1) {
+                return $this->error("Le montant minimum de paiement est de 1 USD");
+            }
+        }
+
+        $data = compact('nom', 'devise', 'montant', 'montant_fixe', 'devise_fixe');
+        $data['date'] = now('Africa/Lubumbashi');
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $idcompte = $user->comptes()->first()->id;
+        $data['compte_id'] = $idcompte;
+
+        $exist = LienPaie::where(['compte_id' => $idcompte, 'nom' => $nom])->first();
+        if ($exist) {
+            return $this->error("Le lien de paiement \"$nom\" existe déjà.");
+        }
+        LienPaie::create($data);
+
+        return $this->success("Votre lien de paiemen a été créé.");
+    }
+
+    public function pay_link_del(LienPaie $id)
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $idcompte = $user->comptes()->first()->id;
+        if ($id->compte_id != $idcompte) {
+            abort(403);
+        }
+        $id->delete();
+        return $this->success('Lien de paiement supprimé');
     }
 }
