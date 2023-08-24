@@ -11,6 +11,8 @@ use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
+use Yajra\DataTables\Facades\DataTables;
+use Yajra\DataTables\Html\Button;
 
 class MarchandController extends Controller
 {
@@ -149,6 +151,29 @@ class MarchandController extends Controller
         }
 
         $m = "TRANSACTIONS";
+
+        if (request()->has('datatable')) {
+            $data = Transaction::where('compte_id', $compte->id);
+            $dtable = DataTables::of($data)
+                ->addIndexColumn()
+                ->editColumn('montant', function ($data) {
+                    return formatMontant($data->montant, $data->devise->devise);
+                })->editColumn('date', function ($data) {
+                    return $data->date->format('d-m-Y H:i:s');;
+                });
+            if ($source == 'E-PAY') {
+                $data = $data->where('source', $source);
+                $dtable = $dtable->addColumn('numero', function ($data) {
+                    $d = json_decode($data->data);
+                    $tel = mask_num(@$d->telephone);
+                    $ref = @$d->ref;
+                    $h = "$tel<br><small style='font-size:10px'>$ref</small>";
+                    return $h;
+                })->escapeColumns([3]);
+            }
+            return $dtable->make(true);
+        }
+
         return $this->success($m, $tab);
     }
 
@@ -223,6 +248,34 @@ class MarchandController extends Controller
             $o->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
             array_push($tab, $o);
         }
+
+        if (request()->has('datatable')) {
+            $data = DemandeTransfert::whereIn('solde_id', $idsol);
+            $dtable = DataTables::of($data)
+                ->addIndexColumn()
+                ->editColumn('status', function ($data) {
+                    $dt = '';
+                    if ($data->status == 'EN ATTENTE') {
+                        $status = "<span class='badge w-100 bg-warning p-2'>$data->status</span>";
+                    } elseif ($data->status == 'TRAITÉE') {
+                        $status = "<span class='badge w-100 bg-success p-2'>$data->status</span>";
+                        $dt = "Le {$data->date_validation?->format('d-m-Y H:i:s')}";
+                    } else {
+                        $status = "<span class='badge w-100 bg-danger p-2'>$data->status</span>";
+                        $dt = "Le {$data->date_validation?->format('d-m-Y H:i:s')}";
+                    }
+                    $s = $status . "<br><small class='text-muted mt-1' style='font-size:10px'>$dt</small>";
+                    return $s;
+                })
+                ->editColumn('montant', function ($data) {
+                    return formatMontant($data->montant, $data->solde->devise->devise);
+                })->editColumn('date', function ($data) {
+                    return $data->date?->format('d-m-Y H:i:s');
+                })->rawColumns(['status']);
+
+            return $dtable->make(true);
+        }
+
         return $this->success("DEMANDES DE TRANSFERT", $tab);
     }
 
@@ -242,7 +295,7 @@ class MarchandController extends Controller
             [
                 'devise' => 'required|in:CDF,USD',
                 'amount' => 'required|integer|',
-                'telephone' => 'required|min:1|regex:/(\+243)[0-9]{9}/',
+                'telephone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/']
             ]
         );
 
@@ -320,6 +373,58 @@ class MarchandController extends Controller
             $a->lien = makepay_link($e->id);
             $tab[] = $a;
         }
+
+        if (request()->has('datatable')) {
+            $data = LienPaie::where('compte_id', $idcompte);
+            $dtable = DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($data) {
+                    $href = makepay_link($data->id);
+                    $action =
+                        <<<DATA
+                    <input value='$href' id='lien-$data->id' class='d-none'>
+                    <button class="btn btn-link dropdown-toggle mr-4 text-dark" type="button" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                       <i class='fa fa-trash'></i> Supprimer
+                    </button>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" id="$data->id" deletelink href="#">Confirmer</a>
+                    </div>
+                    DATA;
+                    return $action;
+                })
+                ->editColumn('montant', function ($data) {
+                    return formatMontant($data->montant, $data->devise);
+                })->editColumn('devise_fixe', function ($data) {
+                    if ($data->devise_fixe) {
+                        $dfixe =
+                            '<span class="badge w-100 p-2 bg-success" style="cursor:pointer" title="Le payeur ne pourra pas payer en une autre devise que celle que avez renseigné." >OUI</span>';
+                    } else {
+                        $dfixe =
+                            '<span class="badge w-100 p-2 bg-warning" style="cursor:pointer" title="Le payeur pourra payer en une autre devise CDF ou USD." >NON</span>';
+                    }
+                    return $dfixe;
+                })->editColumn('montant_fixe', function ($data) {
+                    if ($data->montant_fixe) {
+                        $mfixe =
+                            '<span class="badge w-100 p-2 bg-success" style="cursor:pointer" title="Le payeur va payer exactement ' . formatMontant($data->montant, $data->devise) . '" >OUI</span>';
+                    } else {
+                        $mfixe =
+                            '<span class="badge w-100 p-2 bg-warning" style="cursor:pointer" title="Le payeur pourra payer  un montant different de ' . formatMontant($data->montant, $data->devise) . '" >NON</span>';
+                    }
+                    return $mfixe;
+                })->addColumn('lien', function ($data) {
+                    $href = makepay_link($data->id);
+                    $lien =
+                        "<a href='$href' target='_blank' class='btn btn-link'><i class='fa fa-globe-africa'></i> Lien</a>";
+                    $lien .= "<button class='btn btn-sm btn-copy' value='$data->id'><i class='fa fa-copy'></i><span style='font-size:15px; text-transform:none'></span></button>";
+                    return $lien;
+                })->editColumn('date', function ($data) {
+                    return $data->date->format('d-m-Y H:i:s');;
+                })->escapeColumns([]);
+            return $dtable->make(true);
+        }
+
         return $this->success("LIENS DE PAIEMENTS", $tab);
     }
 
@@ -330,7 +435,7 @@ class MarchandController extends Controller
             [
                 'devise' => 'required|in:CDF,USD',
                 'amount' => 'required|integer|',
-                'nom' => 'required',
+                'name' => 'required|max:100',
                 'montant_fixe' => 'sometimes',
                 'devise_fixe' => 'sometimes',
             ]
@@ -340,7 +445,7 @@ class MarchandController extends Controller
             return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
 
-        $nom = request()->nom;
+        $nom = request()->name;
         $devise = request()->devise;
         $montant = request()->amount;
         $montant_fixe = !request()->has('montant_fixe');

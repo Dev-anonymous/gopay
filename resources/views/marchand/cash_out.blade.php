@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold">TRANSFERT DE FONDS ({{ count($trans) }})</h3>
+                        <h3 class="font-weight-bold">TRANSFERT DE FONDS (<span nb></span>)</h3>
                         <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
                             <i class="fa fa-plus-circle mr-1"></i>
                             NOUVEAU TRANSFERT
@@ -22,45 +22,17 @@
                 <div class="col-md-12">
                     <x-error />
                     <div class="table-responsive">
-                        <table tdata class="table table-hover font-weight-bold table-striped text-nowrap">
+                        <table tdata class="table table-hover font-weight-bold table-striped" style="width: 100%">
                             <thead class="table-dark">
                                 <th></th>
                                 <th>TRANS. ID</th>
-                                <th>MONTANT</th>
-                                <th>ENVOI AU</th>
+                                <th class="text-center">MONTANT</th>
+                                <th class="text-center">ENVOI AU</th>
                                 <th class="text-center">STATUS</th>
-                                <th>NOTE VALIDATION</th>
-                                <th>DATE</th>
+                                <th class="text-center">NOTE VALIDATION</th>
+                                <th class="text-right">DATE</th>
                             </thead>
-                            <tbody>
-                                @foreach ($trans as $k => $v)
-                                    @php
-                                        $dt = '';
-                                        if ($v->status == 'EN ATTENTE') {
-                                            $status = "<span class='badge bg-warning p-2'>$v->status</span>";
-                                        } elseif ($v->status == 'TRAITÉE') {
-                                            $status = "<span class='badge bg-success p-2'>$v->status</span>";
-                                            $dt = "Le $v->date_validation";
-                                        } else {
-                                            $status = "<span class='badge bg-danger p-2'>$v->status</span>";
-                                            $dt = "Le $v->date_validation";
-                                        }
-                                    @endphp
-                                    <tr>
-                                        <td>{{ $k + 1 }}</td>
-                                        <td>{{ $v->trans_id }}</td>
-                                        <td>{{ $v->montant }}</td>
-                                        <td>{{ $v->au_numero }}</td>
-                                        <td class="text-center">
-                                            {!! $status !!}
-                                            <br>
-                                            <i class='text-muted small mt-1'>{{ $dt }}</i>
-                                        </td>
-                                        <td>{{ $v->note_validation }}</td>
-                                        <td>{{ $v->date }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -119,7 +91,10 @@
 @endsection
 
 @section('js-code')
+    @include('files.datatable-js')
     <script src="{{ asset('js/jquery.mask.min.js') }}"></script>
+    <script src="{{ asset('js/swal/swal.all.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/swal/swal/swal.min.css') }}">
     <script>
         $(function() {
             $('#phone').mask('000000000');
@@ -145,11 +120,7 @@
                                     'alert alert-success')
                                 .slideDown();
                             form[0].reset();
-                            setTimeout(() => {
-                                $('.modal-backdrop.fade.show,.modal.fade.show')
-                                    .remove();
-                                location.reload();
-                            }, 3000);
+                            datatableOb.ajax.reload(null, false);
                         } else {
                             var m = res.message + '<br>';
                             m += res.data?.errors_msg?.join('<br>') ?? '';
@@ -167,8 +138,75 @@
                 }).always(function(s) {
                     btn.attr('disabled', false).find('i').removeClass().addClass(iclass);
                 });
+            });
 
-            })
+            var datatableOb = (new DataTable('[tdata]', {
+                dom: 'Bfrtip',
+                buttons: [
+                    'pageLength', 'excel', 'pdf', 'print'
+                ],
+                "lengthMenu": [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                processing: false,
+                serverSide: true,
+                ajax: {
+                    url: "{{ route('marchand.api.demande_trans', ['datatable' => '']) }}",
+                    beforeSend: function() {
+                        $('[tdata]').closest('div').LoadingOverlay("show", {
+                            maxSize: 50
+                        });
+                    },
+                    complete: function() {
+                        $('[tdata]').closest('div').LoadingOverlay("hide");
+                    },
+                    error: function(resp) {
+                        $('[onerror]').slideDown();
+                    }
+                },
+                order: [
+                    [0, "desc"]
+                ],
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'id'
+                    },
+                    {
+                        data: 'trans_id',
+                        name: 'trans_id'
+                    },
+                    {
+                        data: 'montant',
+                        name: 'montant',
+                        class: 'text-nowrap text-center'
+                    },
+                    {
+                        data: 'au_numero',
+                        name: 'au_numero',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'status',
+                        name: 'status',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'note_validation',
+                        name: 'note_validation',
+                        searchable: false,
+                        orderable: false,
+                    },
+                    {
+                        data: 'date',
+                        name: 'date',
+                        class: 'text-right'
+                    }
+                ]
+            })).on('xhr.dt',
+                function(e, settings, data, xhr) {
+                    $('span[nb]').html(data.recordsTotal);
+                });
 
         })
     </script>

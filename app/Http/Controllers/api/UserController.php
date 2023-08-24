@@ -58,7 +58,7 @@ class UserController extends Controller
     {
         $user = auth()->user();
         $validator = Validator::make(request()->all(), [
-            'business_name' => 'required|max:45',
+            'business_name' => 'required|max:45|unique:users,business_name,' . $user->id,
             'name' => 'required|max:45',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'required|min:10|numeric|regex:/(\+243)[0-9]{9}/|unique:users,phone,' . $user->id,

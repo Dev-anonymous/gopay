@@ -46,15 +46,15 @@
                                                 <td>{{ $el->key }}</td>
                                                 <td class="text-right">
                                                     @if ($el->active)
-                                                        <span class="badge bg-success p-2" style="cursor: pointer"
-                                                            data-toggle="tooltip"
-                                                            title="La clef est prête à être utilisée dans vos projet en mode production.">
+                                                        <span class="badge w-100 bg-success p-2" style="cursor: pointer"
+                                                            data-toggle="popover" data-trigger="hover"
+                                                            data-content="La clef est prête à être utilisée dans vos projet en mode production.">
                                                             <i class="fa fa-check-circle"></i> ACTIVE
                                                         </span>
                                                     @else
-                                                        <span class="badge bg-danger p-2" style="cursor: pointer"
-                                                            data-toggle="tooltip"
-                                                            title="La clef est désactivée, elle ne peut être utilisée.">
+                                                        <span class="badge w-100 bg-danger p-2" style="cursor: pointer"
+                                                            data-toggle="popover" data-trigger="hover"
+                                                            data-content="La clef est désactivée, elle ne peut être utilisée.">
                                                             <i class="fa fa-ban"></i> NON ACTIVE
                                                         </span>
                                                     @endif
@@ -68,6 +68,13 @@
                     </div>
                 </div>
                 <div class="col-md-12">
+                    <div class="card p-3 mt-3">
+                        <div class="alert alert-warning w-100 mb-0">
+                            <b>
+                                <i class="fa fa-info-circle"></i> La document de l'API est en cours de redaction.
+                            </b>
+                        </div>
+                    </div>
                     <div class="card mt-3">
                         <div class="card-header">
                             <h6 class="font-weight-bold">Comment intégrer {{ config('app.name') }} ?</h6>
@@ -80,12 +87,13 @@
                             <h6 class="text-danger font-italic font-weight-bold">Etape 1 : Initier un paiement</h6>
                             <blockquote class="blockquote bg-grey">
                                 <div class="small mb-2">
-                                    <i>/POST : {{ route('pay.init') }}</i> <br>
-                                    <i>Header : x-api-key:[API_KEY]</i> <br>
-                                    <i>params : devise [CDF|USD], montant, telephone [numéro telephone du client à utiliser
-                                        pour le paiement]</i>
+                                    <small>/ POST : {{ route('pay.init') }} <br>
+                                        Header : x-api-key:[API_KEY] <br>
+                                        params : devise [CDF|USD], montant, telephone [numéro telephone du client qui initie
+                                        le paiement]
+                                    </small>
                                 </div>
-                                <p>Initie une transaction pour le compte du marchand.</p>
+                                <p># Initie une transaction pour le compte du marchand.</p>
                                 <P>
                                     Reponse de la requête :
                                 </P>
@@ -103,10 +111,11 @@
                             <h6 class="text-danger font-italic font-weight-bold">Etape 2 : Vérifier un paiement</h6>
                             <blockquote class="blockquote bg-grey">
                                 <div class="small mb-2">
-                                    <i>/POST : {{ route('pay.check') }}/[REF]</i> <br>
-                                    <i>Header : x-api-key:[API_KEY]</i>
+                                    <small>/ POST : {{ route('pay.check') }}/[REF] <br>
+                                        Header : x-api-key:[API_KEY]
+                                    </small>
                                 </div>
-                                <p>Vérifier l'état de la transaction.</p>
+                                <p># Vérifier l'état de la transaction.</p>
                                 <P>
                                     Reponse de la requête :
                                 </P>
@@ -119,7 +128,7 @@
                             </blockquote>
                         </div>
                         <div class="card-footer">
-                            <p>Télécharger le projet laravel avec modèle d’intégration de l’API. </p>
+                            <p>Télécharger le projet laravel avec modèle d'intégration de l'API. </p>
                             <a href="" class="btn btn-sm btn-dark mb-5">
                                 <i class="fa fa-download">Télécharger</i>
                             </a>

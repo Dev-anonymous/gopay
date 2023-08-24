@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
+use Yajra\DataTables\Facades\DataTables;
 
 class AdminController extends Controller
 {
@@ -32,6 +33,22 @@ class AdminController extends Controller
             $tab[] = $o;
         }
         $n = count($tab);
+
+        if (request()->has('datatable')) {
+            $data = Feedback::all();
+            $dtable = DataTables::of($data)
+                ->addIndexColumn()
+                ->rawColumns(['contact'])
+                ->addColumn('contact', function ($data) {
+                    $s = $data->telephone . "<br><small class='text-muted mt-1'>$data->email</small>";
+                    return $s;
+                })->editColumn('date', function ($data) {
+                    return $data->date?->format('d-m-Y H:i:s');
+                });
+
+            return $dtable->make(true);
+        }
+
         return $this->success("FEEDBACK ($n)", $tab);
     }
 
@@ -69,7 +86,7 @@ class AdminController extends Controller
             $request->all(),
             [
                 'name' => 'required|string|max:45',
-                'business_name' => 'required|string|max:45',
+                'business_name' => 'required|max:45|unique:users',
                 'email' => 'sometimes|email|max:45|unique:users',
                 'phone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
                 'password' => 'required|string|min:6|',
@@ -135,11 +152,11 @@ class AdminController extends Controller
             $a->montant = formatMontant($e->montant, $e->devise->devise);
             $a->type = $e->type;
             $a->source = $e->source;
-            $op =  $e->operateur;
-            if ($op) {
-                $op = ['operateur' => $op->operateur, 'image' => asset('storage/' . $op->image)];
-            }
-            $a->operateur = $op;
+            // $op =  $e->operateur;
+            // if ($op) {
+            //     $op = ['operateur' => $op->operateur, 'image' => asset('storage/' . $op->image)];
+            // }
+            // $a->operateur = $op;
             $a->date = $e->date->format('d-m-Y H:i:s');
             $a->data = json_decode($e->data);
             array_push($tab, $a);
@@ -147,6 +164,34 @@ class AdminController extends Controller
 
         $n = count($tab);
         $m = "TRANSACTIONS ($n)";
+
+        if (request()->has('datatable')) {
+            $data = Transaction::all();
+            $dtable = DataTables::of($data)
+                ->addIndexColumn()
+                ->rawColumns(['data'])
+                ->addColumn('user', function ($data) {
+                    return $data->compte->user->name;
+                })
+                ->addColumn('numero_compte', function ($data) {
+                    return $data->compte->numero_compte;
+                })->editColumn('date', function ($data) {
+                    return $data->date?->format('d-m-Y H:i:s');
+                })->editColumn('montant', function ($data) {
+                    return formatMontant($data->montant, $data->devise->devise);
+                })->addColumn('data', function ($data) {
+                    $d = (array) json_decode($data->data);
+                    $h = '';
+                    foreach ($d as $k => $v) {
+                        $h .= "<small>$k : $v</small><br>";
+                    }
+                    return $h;
+                });
+
+            return $dtable->make(true);
+        }
+
+
         return $this->success($m, $tab);
     }
 
@@ -218,7 +263,7 @@ class AdminController extends Controller
             if ($solde < $montant) {
                 $s = formatMontant($solde, $dem->solde->devise->devise);
                 $m = formatMontant($montant, $dem->solde->devise->devise);
-                return $this->error("$bus a un solde de $s, imposible de traiter cette demande de $m");
+                return $this->error("$bus a un solde de $s, impossible de traiter cette demande de $m");
             }
             $dem->solde->decrement('montant', $montant);
         }

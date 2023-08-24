@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold" title></h3>
+                        <h3 class="font-weight-bold"> LIENS DE PAIEMENT (<span nb></span>)</h3>
                         <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
                             <i class="fa fa-plus-circle mr-1"></i>
                             NOUVEAU LIEN
@@ -22,17 +22,16 @@
                 <div class="col-md-12">
                     <x-error />
                     <div class="table-responsive">
-                        <table tdata class="table table-hover font-weight-bold table-striped text-nowrap">
-                            <thead class="table-dark">
-                                <th>
-                                    <div loader class="spinner-border spinner-border-sm"></div>
-                                </th>
+                        <table tdata class="table table-hover font-weight-bold table-striped"
+                            style="width: 100%">
+                            <thead class="table-dark text-nowrap">
+                                <th></th>
                                 <th>NOM</th>
                                 <th>MONTANT</th>
                                 <th class="text-center">MONTANT FIXE</th>
                                 <th class="text-center">DEVISE FIXE</th>
                                 <th class="text-center">LIEN DE PAIEMENT</th>
-                                <th>DATE</th>
+                                <th class="text-right">DATE</th>
                                 <th></th>
                             </thead>
                             <tbody></tbody>
@@ -55,7 +54,7 @@
                     <div class="modal-body">
                         <div class="bg-white rounded shadow-lg p-5">
                             <div class="form-outline">
-                                <input id="form1Example1" required name="nom" class="form-control" />
+                                <input id="form1Example1" required name="name" maxlength="100" class="form-control" />
                                 <label class="form-label" for="form1Example1">Nom du lien</label>
                             </div>
                             <label for="" class="mb-4">Ex : DON, PAIEMENT</label>
@@ -80,7 +79,8 @@
                             </div>
                             <div class="form-outline mb-4 input-group flex-nowrap">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="devise_fixe" id="dfixe" />
+                                    <input disabled class="form-check-input" type="checkbox" name="devise_fixe"
+                                        id="dfixe" />
                                     <label class="form-check-label" for="dfixe">
                                         Autoriser le payeur à payer dans n'importe quelle devise
                                     </label>
@@ -103,71 +103,11 @@
 @endsection
 
 @section('js-code')
-    {{-- <script src="{{ asset('js/jquery.mask.min.js') }}"></script> --}}
+    @include('files.datatable-js')
+    <script src="{{ asset('js/swal/swal.all.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('js/swal/swal/swal.min.css') }}">
     <script>
         $(function() {
-            // $('#phone').mask('000000000');
-            var tdata = $('[tdata]');
-
-            function getdata() {
-                $('[loader]').fadeIn();
-                $.ajax({
-                    url: '{{ route('marchand.api.pay_link') }}',
-                    timeout: 20000,
-                    success: function(res) {
-                        $('[title]').html(res.message);
-                        var str = '';
-
-                        $(res.data).each(function(i, e) {
-                            if (e.devise_fixe) {
-                                var dfixe = '<span class="badge p-2 bg-success" >OUI</span>';
-                            } else {
-                                var dfixe = '<span class="badge p-2 bg-warning" >OUI</span>';
-                            }
-                            if (e.montant_fixe) {
-                                var mfixe = '<span class="badge p-2 bg-success" >OUI</span>';
-                            } else {
-                                var mfixe = '<span class="badge p-2 bg-warning" >OUI</span>';
-                            }
-
-                            var lien =
-                                `<a href="${e.lien}" target='_blank' class='btn btn-link'><i class='fa fa-globe-africa'></i> Lien</a>`
-                            lien +=
-                                `<button class='btn btn-sm btn-copy' value='${e.id}'><i class="fa fa-copy"></i><span></span></button>`
-
-                            str += `
-                                <tr>
-                                    <td>${i+1}</td>
-                                    <td>${e.nom}</td>
-                                    <td>${e.montant}</td>
-                                    <td class="text-center">${mfixe}</td>
-                                    <td class="text-center">${dfixe}</td>
-                                    <td class="text-center">${lien}</td>
-                                    <td>${e.date}</td>
-                                    <td>
-                                        <input value='${e.lien}' id='lien-${e.id}' class='d-none'>
-                                        <button class="btn btn-link dropdown-toggle mr-4 text-dark" type="button" data-toggle="dropdown"
-                                            aria-haspopup="true" aria-expanded="false">
-                                           <i class='fa fa-trash'></i> Supprimer
-                                        </button>
-                                        <div class="dropdown-menu">
-                                            <a class="dropdown-item" id="${e.id}" deletelink href="#">Confirmer</a>
-                                        </div>
-                                    </td>
-                                </tr>
-                                `;
-                        });
-                        tdata.find('tbody').html(str);
-                        init();
-                    },
-                    error: function(resp) {
-                        $('[onerror]').slideDown();
-                    }
-                }).always(function(s) {
-                    $('[loader]').fadeOut();
-                })
-            }
-
             function init() {
                 $('[deletelink]').off('click').click(function() {
                     event.preventDefault();
@@ -180,13 +120,20 @@
                         type: 'delete',
                         timeout: 20000,
                         success: function(res) {
-                            alert(res.message);
-                            getdata();
+                            datatableOb.ajax.reload(null, false);
+                            Swal.fire(
+                                'Le lien de paiement a été supprimé !',
+                                '',
+                                'info'
+                            )
                         },
                         error: function(resp) {
                             var mess = resp.responseJSON?.message ??
-                                "Une erreur s'est produite, merci de réessayer";
-                            alert(mess);
+                                "Une erreur s'est produite,veuillez recharger cette page";
+                            Swal.fire(
+                                'Oops',
+                                mess, 'error'
+                            );
                         }
 
                     });
@@ -196,7 +143,7 @@
                     var id = this.value;
                     var btn = $(this);
                     btn.attr('disabled', true);
-                    btn.find('i').removeClass().addClass('fa fa-check-circle text-success fa-2x');
+                    btn.find('i').removeClass().addClass('fa fa-check-circle text-success');
                     btn.find('span').html(' lien copié');
                     setTimeout(() => {
                         btn.find('i').removeClass().addClass('fa fa-copy');
@@ -204,13 +151,12 @@
                         btn.attr('disabled', false);
                     }, 3000);
 
-                    var copyText = document.getElementById("lien-"+id);
+                    var copyText = document.getElementById("lien-" + id);
                     copyText.select();
                     copyText.setSelectionRange(0, 99999);
                     navigator.clipboard.writeText(copyText.value);
                 })
             }
-            getdata();
 
             $('#f-add').submit(function() {
                 event.preventDefault();
@@ -233,9 +179,7 @@
                             rep.html(res.message).removeClass().addClass('alert alert-success')
                                 .slideDown();
                             form[0].reset();
-                            setTimeout(() => {
-                                location.reload();
-                            }, 2000);
+                            datatableOb.ajax.reload(null, false);
                         } else {
                             var m = res.message + '<br>';
                             m += res.data?.errors_msg?.join('<br>') ?? '';
@@ -252,7 +196,82 @@
                 }).always(function(s) {
                     btn.attr('disabled', false).find('i').removeClass().addClass(iclass);
                 });
-            })
+            });
+
+            var datatableOb = (new DataTable('[tdata]', {
+                dom: 'Bfrtip',
+                buttons: [
+                    'pageLength', 'excel', 'pdf', 'print'
+                ],
+                "lengthMenu": [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, "All"]
+                ],
+                processing: false,
+                serverSide: true,
+                ajax: {
+                    url: "{{ route('marchand.api.pay_link', ['datatable' => '']) }}",
+                    beforeSend: function() {
+                        $('[tdata]').closest('div').LoadingOverlay("show", {
+                            maxSize: 50
+                        });
+                    },
+                    complete: function() {
+                        init();
+                        $('[tdata]').closest('div').LoadingOverlay("hide");
+                    },
+                    error: function(resp) {
+                        $('[onerror]').slideDown();
+                    }
+                },
+                order: [
+                    [0, "desc"]
+                ],
+                columns: [{
+                        data: 'DT_RowIndex',
+                        name: 'id'
+                    },
+                    {
+                        data: 'nom',
+                        name: 'nom'
+                    },
+                    {
+                        data: 'montant',
+                        name: 'montant',
+                        class: 'text-nowrap text-center'
+                    },
+                    {
+                        data: 'montant_fixe',
+                        name: 'montant_fixe',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'devise_fixe',
+                        name: 'devise_fixe',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'lien',
+                        name: 'lien',
+                        searchable: false,
+                        orderable: false,
+                        class: 'text-nowrap'
+                    },
+                    {
+                        data: 'date',
+                        name: 'date',
+                        class: 'text-right'
+                    }, {
+                        data: 'action',
+                        name: 'action',
+                        searchable: false,
+                        orderable: false
+                    },
+                ]
+            })).on('xhr.dt',
+                function(e, settings, data, xhr) {
+                    $('span[nb]').html(data.recordsTotal);
+                });
         })
     </script>
 @endsection

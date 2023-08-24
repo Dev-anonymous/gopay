@@ -18,20 +18,20 @@
                 <div class="col-md-12">
                     <x-error />
                     <div class="table-responsive">
-                        <table tdata class="table table-hover font-weight-bold table-striped text-nowrap">
+                        <table tdata class="table table-hover font-weight-bold table-striped">
                             <thead class="table-dark">
                                 <th>
                                     <div loader class="spinner-border spinner-border-sm"></div>
                                 </th>
                                 <th>TRANS. ID</th>
                                 <th>MARCHAND</th>
-                                <th>NUMERO COMPTE</th>
+                                <th class="text-nowrap">NUMERO COMPTE</th>
                                 <th>SOLDE</th>
-                                <th>ENVOI AU</th>
-                                <th>MONTANT</th>
+                                <th class="text-center">ENVOI AU</th>
+                                <th class="text-center">MONTANT</th>
                                 <th class="text-center">STATUS</th>
-                                <th>NOTE VALIDATION</th>
-                                <th>DATE</th>
+                                <th class="text-nowrap">NOTE VALIDATION</th>
+                                <th class="text-right">DATE</th>
                                 <th></th>
                             </thead>
                             <tbody></tbody>
@@ -52,7 +52,7 @@
                         <i class="fa fa-times text-muted fa-2x" data-dismiss="modal" style="cursor: pointer"></i>
                     </div>
                     <form class="f-val" action="#">
-                        <div class="modal-body font-weight-bold">
+                        <div class="modal-body">
                             <div class="bg-white rounded shadow-lg p-5">
                                 <h5 class="font-weight-bold">Montant : DATA_MONTANT</h5>
                                 <h5 class="font-weight-bold">Au : DATA_NUMERO</h5>
@@ -107,14 +107,14 @@
                             var btn = '';
                             if (e.status == 'EN ATTENTE') {
                                 var status =
-                                    `<span class='badge bg-warning p-2'>${e.status}</span>`;
+                                    `<span class='badge w-100 bg-warning p-2'>${e.status}</span>`;
                             } else if (e.status == 'TRAITÉE') {
                                 var status =
-                                    `<span class='badge bg-success p-2'>${e.status}</span>`;
+                                    `<span class='badge w-100 bg-success p-2'>${e.status}</span>`;
                                 dt = "Le " + e.date_validation;
                             } else {
                                 var status =
-                                    `<span class='badge bg-danger p-2'>${e.status}</span>`;
+                                    `<span class='badge w-100 bg-danger p-2'>${e.status}</span>`;
                                 dt = "Le " + e.date_validation;
                             }
 
@@ -134,15 +134,15 @@
                                     <td>${e.trans_id}</td>
                                     <td>${e.business_name}<br>${e.marchand}</td>
                                     <td>${e.numero_compte}</td>
-                                    <td>${e.solde.join('<br>')}</td>
-                                    <td>${e.au_numero}</td>
-                                    <td>${e.montant}</td>
-                                    <td class="text-center">
+                                    <td class="text-nowrap">${e.solde.join('<br>')}</td>
+                                    <td class="text-nowrap text-center">${e.au_numero}</td>
+                                    <td class="text-nowrap text-center">${e.montant}</td>
+                                    <td class="text-center text-nowrap">
                                         ${status} <br>
-                                        <i class='text-muted small mt-1'>${dt}</i>
+                                        <small class='text-muted mt-1' style='font-size:10px'>${dt}</small>
                                     </td>
                                     <td>${e.note_validation??'-'}</td>
-                                    <td>${e.date}</td>
+                                    <td class="text-right">${e.date}</td>
                                     <td>
                                         ${btn}
                                     </td>

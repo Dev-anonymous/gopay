@@ -25,7 +25,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::get('/transaction', [MarchandController::class, 'transaction'])->name('marchand.api.trans'); //liste transaction
     Route::post('/demande-transfert', [MarchandController::class, 'demande_tranfert'])->name('marchand.api.demande_trans'); //demande tranfert de fonds
-    Route::post('/demande-transfert', [MarchandController::class, 'demande_tranfert'])->name('marchand.api.demande_trans');
+    Route::get('/demande-transfert', [MarchandController::class, 'get_demande_tranfert']);
     Route::post('/pay/init', [MarchandController::class, 'pay_init'])->name('marchand.api.marchand_pay_init');
     Route::post('/pay/check', [MarchandController::class, 'pay_check'])->name('marchand.api.marchand_pay_check');
     Route::get('/pay-link', [MarchandController::class, 'getpay_link'])->name('marchand.api.pay_link');
@@ -64,7 +64,10 @@ Route::post('/feedback', [UserController::class, 'feedback'])->name('feedback');
 ########## MARCHAND PAIEMENT #########
 Route::middleware('paymentProd.mdwr')->group(function () {
     Route::prefix('v1')->group(function () {
-        Route::post('/payment/init', [PayementController::class, 'payinit'])->name('pay.init'); //initiaiser un paiement
-        Route::post('/payment/check/{ref?}', [PayementController::class, 'paycheck'])->name('pay.check'); //verifier le paiement
+        Route::post('/payment/init', [PayementController::class, 'payinit'])->name('pay.init');
+        Route::post('/payment/check/{ref?}', [PayementController::class, 'paycheck'])->name('pay.check');
     });
 });
+
+Route::post('/web/payment/init', [PayementController::class, 'web_pay_init'])->name('web.pay.init');
+Route::post('/web/payment/check', [PayementController::class, 'web_pay_check'])->name('web.pay.check');

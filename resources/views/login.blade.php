@@ -9,7 +9,7 @@
             <div class="container d-flex align-items-center h-100">
                 <div class="row d-flex justify-content-center">
                     <div class="col-xl-5 col-md-8">
-                        <form class="bg-whited rounded shadow-5-strong p-5" id="f-log" accept="#"
+                        <form class="rounded shadow-5-strong p-5" id="f-log" accept="#"
                             style="background-color: rgba(0, 0, 0, 0.76);">
                             <div class="text-center">
                                 <h5 class="mb-5 font-weight-bold text-white">Connexion | {{ config('app.name') }}</h5>

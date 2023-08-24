@@ -5,8 +5,10 @@ namespace App\Http\Controllers\api;
 use App\Http\Controllers\Controller;
 use App\Models\Devise;
 use App\Models\Fp;
+use App\Models\LienPaie;
 use App\Models\Operateur;
 use App\Traits\ApiResponser;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Validator;
 
 class PayementController extends Controller
@@ -27,7 +29,7 @@ class PayementController extends Controller
             [
                 'devise' => 'required|in:CDF,USD',
                 'amount' => 'required|integer|',
-                'telephone' => 'required|min:1|regex:/(243)[0-9]{9}/',
+                'telephone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/']
             ]
         );
 
@@ -37,7 +39,7 @@ class PayementController extends Controller
 
         $_source = request()->_source;
 
-        if (!in_array($_source, ['E-PAY'])) {
+        if (!in_array($_source, ['E-PAY', 'PAY-LINK'])) {
             $_source = 'API';
         }
         $dev = request()->devise;
@@ -140,7 +142,106 @@ class PayementController extends Controller
         return $this->success("Liste operateurs", $dev);
     }
 
-    public function accept_pay($id = null){
-        
+    public function accept_pay($id = null)
+    {
+
+        $id = (int) encode($id, false);
+        $link = LienPaie::where('id', $id)->first();
+        $valide = false;
+        $user = $link?->compte->user;
+        if ($link) {
+            $valide = true;
+        }
+        return view('paiement', compact('link', 'valide', 'user'));
+    }
+
+    public function web_pay_init()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'link' => 'required|exists:lien_paie,id',
+                'devise' => 'required|in:CDF,USD',
+                'amount' => 'required|integer|',
+                'phone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/'],
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+        $devise = request()->devise;
+        $montant = request()->amount;
+        $phone = request()->phone;
+
+        if ($devise == 'CDF' and $montant < 500) {
+            return $this->error("Le montant minimum de paiement est de 500 CDF");
+        } else {
+            if ($montant < 1) {
+                return $this->error("Le montant minimum de paiement est de 1 USD");
+            }
+        }
+
+        $link = LienPaie::where('id', request()->link)->first();
+        if ($link->montant_fixe == 1 and $montant != $link->montant) {
+            $err = "[" . now('Africa/Lubumbashi') . "] [LINK : $link->id] [" . json_encode(request()->all()) . "] [" . request()->userAgent() . "]\n";
+            $file = fopen('LOG_INVALIDE_PAY_AMOUNT', 'a+');
+            fwrite($file, $err);
+            fclose($file);
+            return $this->error("Le montant de paiement est de $link->montant $link->devise");
+        }
+        /** @var \App\Models\User $user **/
+        $user = $link->compte->user;
+        $key = $user->apikeys()->where('type', 'production')->first()->key;
+
+        $params = [
+            '_source' => 'PAY-LINK',
+            'devise' => $devise,
+            'amount' => $montant,
+            'telephone' => $phone
+        ];
+
+        $request = Request::create(route('pay.init'), 'POST', $params);
+        $request->headers->set('x-api-key', $key);
+        $req = app()->handle($request);
+        if ($req->status() != 200) {
+            return $this->error("Une erreur s'est produite, veuillez réessayer.");
+        } else {
+            $data = json_decode($req->getContent());
+        }
+
+        return response()->json((array) $data);
+    }
+
+    public function web_pay_check()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'link' => 'required|exists:lien_paie,id',
+                'ref' => 'required|exists:fp',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        $ref = request()->ref;
+        $link = LienPaie::where('id', request()->link)->first();
+
+        /** @var \App\Models\User $user **/
+        $user = $link->compte->user;
+        $key = $user->apikeys()->where('type', 'production')->first()->key;
+        $request = Request::create(route('pay.check', $ref), 'POST');
+        $request->headers->set('x-api-key', $key);
+        $req = app()->handle($request);
+        if ($req->status() != 200) {
+            return $this->error("Une erreur s'est produite, veuillez réessayer.");
+        } else {
+            $data = json_decode($req->getContent());
+        }
+
+        return response()->json((array) $data);
     }
 }

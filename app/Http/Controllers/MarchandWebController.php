@@ -26,35 +26,17 @@ class MarchandWebController extends Controller
 
     public function transaction()
     {
-        $req = app()->handle(Request::create(route('marchand.api.trans')));
-        if ($req->status() != 200) {
-            $trans = [];
-        } else {
-            $trans = json_decode($req->getContent())->data;
-        }
-        return view('marchand.transaction', compact('trans'));
+        return view('marchand.transaction');
     }
 
     public function cash_out()
     {
-        $req = app()->handle(Request::create(route('marchand.api.demande_trans')));
-        if ($req->status() != 200) {
-            $trans = [];
-        } else {
-            $trans = json_decode($req->getContent())->data;
-        }
-        return view('marchand.cash_out', compact('trans'));
+        return view('marchand.cash_out' );
     }
 
     public function cash_in()
     {
-        $req = app()->handle(Request::create(route('marchand.api.trans'), 'GET', ['source' => 'E-PAY']));
-        if ($req->status() != 200) {
-            $trans = [];
-        } else {
-            $trans = json_decode($req->getContent())->data;
-        }
-        return view('marchand.cash_in', compact('trans'));
+        return view('marchand.cash_in');
     }
 
     public function compte()

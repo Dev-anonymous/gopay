@@ -1,4 +1,7 @@
 <style>
+    .loadingoverlay {
+        z-index: 999 !important;
+    }
     .loader {
         position: fixed;
         left: 0px;
@@ -7,7 +10,7 @@
         bottom: 0px;
         opacity: 1;
         background: white;
-        z-index: 9999;
+        z-index: 999999999;
         display: flex;
         align-items: center;
         justify-content: center;

@@ -89,6 +89,12 @@
                                 Lien de paiement
                             </a>
                         </li>
+                        {{-- <li class="sidenav-item">
+                            <a class="sidenav-link" link href="#">
+                                <i class="fa-solid fa-users p-1"></i>
+                                Comptes de paiement
+                            </a>
+                        </li> --}}
                     </ul>
                 </li>
                 <li class="sidenav-item">
