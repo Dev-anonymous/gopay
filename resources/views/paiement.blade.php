@@ -5,12 +5,11 @@
     <x-nav-app />
 
     <div id="intro" class="bg-image shadow-2-strong">
-        <div class="mask" rrstyle="background-color: rgba(0, 0, 0, 0.8);">
+        <div class="mask" style="background-color: rgba(0, 0, 0, 0.8);">
             <div class="container d-flex align-items-center h-100">
                 <div class="row d-flex justify-content-center">
                     <div class="col-xl-6 col-md-8 col-sm-12">
-                        <form class="bg-white text-dark rounded shadow-5-strong p-5 mt-2" id="f-log" accept="#"
-                            style="ebackground-color: rgba(0, 0, 0, 0.76);">
+                        <form class="bg-white text-dark rounded shadow-5-strong p-5 mt-2" id="f-log">
                             @if ($valide)
                                 <div class="">
                                     <div class="d-flex justify-content-between">
@@ -93,7 +92,7 @@
                                 <div class="form-outline mb-4 input-group flex-nowrap">
                                     <span class="input-group-text" id="addon-wrapping">+243</span>
                                     <input required id="phone" class="form-control" />
-                                    <label class="form-label" for="form1Example1">Numéro mobile money</label>
+                                    <label class="form-label" for="form1Example1">Numéro Tel.</label>
                                 </div>
                                 <div id="rep"></div>
                                 <div class="w-100">
