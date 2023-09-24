@@ -28,7 +28,7 @@ class PayementController extends Controller
             request()->all(),
             [
                 'devise' => 'required|in:CDF,USD',
-                'amount' => 'required|integer|',
+                'amount' => 'required|numeric|',
                 'telephone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/']
             ]
         );
@@ -162,7 +162,7 @@ class PayementController extends Controller
             [
                 'link' => 'required|exists:lien_paie,id',
                 'devise' => 'required|in:CDF,USD',
-                'amount' => 'required|integer|',
+                'amount' => 'required|numeric|',
                 'phone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/'],
             ]
         );

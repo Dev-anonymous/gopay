@@ -37,7 +37,8 @@ class MarchandController extends Controller
         $r = $tab;
         if ($devise) {
             foreach ($r as $sol) {
-                $dev = explode(' ', $sol)[1];
+                $dev = explode(' ', $sol);
+                $dev = end($dev);
                 if ($dev == $devise) {
                     $s[] = $sol;
                     $r = $s;
@@ -47,110 +48,13 @@ class MarchandController extends Controller
         }
         return $this->success('SOLDE', $r);
     }
-    public function transfert()
-    {
-        // /** @var \App\Models\User $user **/
-        // $user = auth()->user();
-
-        // $validator = Validator::make(
-        //     request()->all(),
-        //     [
-        //         'numero_compte' => 'required|exists:compte,numero_compte',
-        //         'devise_id' => 'required|exists:devise,id',
-        //         'montant' => 'required|numeric|min:1',
-        //     ]
-        // );
-
-        // if ($validator->fails()) {
-        //     return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
-        // }
-
-        // $data = $validator->validated();
-        // $cmpt = $data['numero_compte'];
-        // $mont = $data['montant'];
-
-        // $compte = $user->comptes()->first();
-        // if ($cmpt == $compte->numero_compte) {
-        //     return $this->error('Echec de transaction', ['errors_msg' => ["Numéro de compte non autorisé."]]);
-        // }
-
-        // $solde = $compte->soldes()->where(['devise_id' => $data['devise_id']])->first();
-        // $montant_solde = $solde->montant;
-
-        // if ($montant_solde < $mont) {
-        //     return $this->error('Echec de transaction', ['errors_msg' => ["Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre transaction de $mont {$solde->devise->devise} ne peut etre effectuée, merci de recharger votre compte."]]);
-        // }
-
-        // DB::beginTransaction();
-        // $solde->decrement('montant', $mont);
-
-        // $d['compte_id'] = $compte->id;
-        // $d['devise_id'] = $data['devise_id'];
-        // $d['montant'] = $data['montant'];
-        // $d['trans_id'] = $transid = trans_id();
-        // $d['type'] = 'transfert';
-        // $d['data'] = json_encode([
-        //     'to' => $data['numero_compte']
-        // ]);
-        // Transaction::create($d);
-
-        // $comptBenficiaire = Compte::where('numero_compte', $data['numero_compte'])->first();
-        // $solde2 = $comptBenficiaire->soldes()->where(['devise_id' => $data['devise_id']])->first();
-        // $solde2->increment('montant', $mont);
-
-        // $d['compte_id'] = $comptBenficiaire->id;
-        // $d['source'] = 'client';
-        // $d['data'] = json_encode([
-        //     'from' => $compte->numero_compte
-        // ]);
-        // Transaction::create($d);
-        // DB::commit();
-
-        // $msg = "Vous venez d'effectuer un tranfert de $mont {$solde->devise->devise} vers le compte {$comptBenficiaire->numero_compte}({$comptBenficiaire->user->name}). TransID : $transid";
-        // return $this->success($msg);
-    }
-
 
     public function transaction($limte = null)
     {
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $compte = $user->comptes()->first();
-        $trans = Transaction::where('compte_id', $compte->id);
-        $limte = (int) $limte;
-        if ($limte) {
-            $trans = $trans->limit($limte);
-        }
-
         $source = request()->source;
-        if ($source == 'E-PAY') {
-            $trans = $trans->where('source', $source);
-        }
-
-        $trans = $trans->orderBy('id', 'desc')->get();
-
-        $tab = [];
-
-        foreach ($trans as $e) {
-            $a = new stdClass();
-            $a->id = $e->id;
-            $a->trans_id = $e->trans_id;
-            $a->montant = formatMontant($e->montant, $e->devise->devise);
-            $a->type = $e->type;
-            $a->source = $e->source;
-            $d = json_decode($e->data);
-            $a->tel = mask_num(@$d->telephone);
-            $a->ref = @$d->ref;
-            // $op =  $e->operateur;
-            // if ($op) {
-            //     $op = ['operateur' => $op->operateur, 'image' => asset('storage/' . $op->image)];
-            // }
-            // $a->operateur = $op;
-            $a->date = $e->date->format('d-m-Y H:i:s');
-            array_push($tab, $a);
-        }
-
-        $m = "TRANSACTIONS";
 
         if (request()->has('datatable')) {
             $data = Transaction::where('compte_id', $compte->id);
@@ -174,6 +78,84 @@ class MarchandController extends Controller
             return $dtable->make(true);
         }
 
+        $trans = Transaction::where('compte_id', $compte->id);
+        $limte = (int) $limte;
+        if ($limte) {
+            $trans = $trans->limit($limte);
+        }
+
+        if ($source == 'E-PAY') {
+            $trans = $trans->where('source', $source);
+        }
+
+        $trans = $trans->orderBy('id', 'desc')->paginate();
+
+        $tab = [];
+        foreach ($trans->getCollection() as  $e) {
+            $a = new stdClass();
+            $a->id = $e->id;
+            $a->trans_id = $e->trans_id;
+            $a->montant = formatMontant($e->montant, $e->devise->devise);
+            $a->type = $e->type;
+            $a->source = $e->source;
+            $d = json_decode($e->data);
+            $a->tel = mask_num(@$d->telephone);
+            $a->ref = @$d->ref;
+            $a->date = $e->date->format('d-m-Y H:i:s');
+            array_push($tab, $a);
+        }
+
+        $trans = $trans->toArray();
+        $trans['data'] = $tab;
+
+        $m = "TRANSACTIONS";
+        return $this->success($m, $trans);
+    }
+
+    public function transaction_recentes()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $compte = $user->comptes()->first();
+        $trans = Transaction::where('compte_id', $compte->id)->orderBy('id', 'desc')->limit(5)->get();
+        $idsol = $user->comptes()->first()->soldes()->pluck('id')->all();
+        $demande = DemandeTransfert::whereIn('solde_id', $idsol)->orderBy('id', 'DESC')->limit(5)->get();
+
+        $tab = [];
+
+        foreach ($trans as $e) {
+            $a = new stdClass();
+            $a->id = $e->id;
+            $a->dir = "IN";
+            $a->trans_id = $e->trans_id;
+            $a->montant = formatMontant($e->montant, $e->devise->devise);
+            $a->type = $e->type;
+            $a->source = $e->source;
+            $d = json_decode($e->data);
+            $a->tel = mask_num(@$d->telephone);
+            $a->ref = @$d->ref;
+            $a->date = $e->date->format('d-m-Y H:i:s');
+            array_push($tab, $a);
+        }
+        foreach ($demande as $e) {
+            $o = (object)[];
+            $o->id = $e->id;
+            $o->dir = "OUT";
+            $o->trans_id = $e->trans_id;
+            $o->montant = formatMontant($e->montant, $e->solde->devise->devise);
+            $o->au_numero = $e->au_numero;
+            $o->status = $e->status;
+            $o->note_validation = $e->note_validation;
+            $o->date = $e->date->format('d-m-Y H:i:s');
+            $o->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
+            array_push($tab, $o);
+        }
+
+        usort($tab,  function ($a, $b) {
+            return strtotime($a->date) < strtotime($b->date);
+        });
+
+        $m = "TRANSACTIONS RECENTES";
         return $this->success($m, $tab);
     }
 
@@ -183,7 +165,7 @@ class MarchandController extends Controller
             request()->all(),
             [
                 'devise' => 'required|in:CDF,USD',
-                'montant' => 'required|integer|',
+                'montant' => 'required|numeric|',
                 'telephone' => 'required|min:1|regex:/(\+243)[0-9]{9}/',
             ]
         );
@@ -234,21 +216,6 @@ class MarchandController extends Controller
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $idsol = $user->comptes()->first()->soldes()->pluck('id')->all();
-        $demande = DemandeTransfert::whereIn('solde_id', $idsol)->orderBy('id', 'DESC')->get();
-        $tab = [];
-        foreach ($demande as $e) {
-            $o = (object)[];
-            $o->id = $e->id;
-            $o->trans_id = $e->trans_id;
-            $o->montant = formatMontant($e->montant, $e->solde->devise->devise);
-            $o->au_numero = $e->au_numero;
-            $o->status = $e->status;
-            $o->note_validation = $e->note_validation;
-            $o->date = $e->date->format('d-m-Y H:i:s');
-            $o->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
-            array_push($tab, $o);
-        }
-
         if (request()->has('datatable')) {
             $data = DemandeTransfert::whereIn('solde_id', $idsol);
             $dtable = DataTables::of($data)
@@ -276,7 +243,25 @@ class MarchandController extends Controller
             return $dtable->make(true);
         }
 
-        return $this->success("DEMANDES DE TRANSFERT", $tab);
+        $demande = DemandeTransfert::whereIn('solde_id', $idsol)->orderBy('id', 'DESC')->paginate();
+        $tab = [];
+        foreach ($demande->getCollection() as $e) {
+            $o = (object)[];
+            $o->id = $e->id;
+            $o->trans_id = $e->trans_id;
+            $o->montant = formatMontant($e->montant, $e->solde->devise->devise);
+            $o->au_numero = $e->au_numero;
+            $o->status = $e->status;
+            $o->note_validation = $e->note_validation;
+            $o->date = $e->date->format('d-m-Y H:i:s');
+            $o->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
+            array_push($tab, $o);
+        }
+
+        $data = $demande->toArray();
+        $data['data'] = $tab;
+
+        return $this->success("DEMANDES DE TRANSFERT", $data);
     }
 
     public function numero_compte()
@@ -294,7 +279,7 @@ class MarchandController extends Controller
             request()->all(),
             [
                 'devise' => 'required|in:CDF,USD',
-                'amount' => 'required|integer|',
+                'amount' => 'required|numeric|',
                 'telephone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/']
             ]
         );
@@ -360,20 +345,6 @@ class MarchandController extends Controller
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $idcompte = $user->comptes()->first()->id;
-        $links = LienPaie::where('compte_id', $idcompte)->orderBy('id', 'DESC')->get();
-        $tab = [];
-        foreach ($links as $e) {
-            $a = (object) [];
-            $a->id = $e->id;
-            $a->nom = $e->nom;
-            $a->montant = formatMontant($e->montant, $e->devise);
-            $a->montant_fixe = $e->montant_fixe;
-            $a->devise_fixe = $e->devise_fixe;
-            $a->date = $e->date->format('d-m-Y H:i:s');
-            $a->lien = makepay_link($e->id);
-            $tab[] = $a;
-        }
-
         if (request()->has('datatable')) {
             $data = LienPaie::where('compte_id', $idcompte);
             $dtable = DataTables::of($data)
@@ -425,7 +396,24 @@ class MarchandController extends Controller
             return $dtable->make(true);
         }
 
-        return $this->success("LIENS DE PAIEMENTS", $tab);
+        $links = LienPaie::where('compte_id', $idcompte)->orderBy('id', 'DESC')->paginate();
+        $tab = [];
+        foreach ($links->getCollection() as $e) {
+            $a = (object) [];
+            $a->id = $e->id;
+            $a->nom = $e->nom;
+            $a->montant = formatMontant($e->montant, $e->devise);
+            $a->montant_fixe = $e->montant_fixe;
+            $a->devise_fixe = $e->devise_fixe;
+            $a->date = $e->date->format('d-m-Y H:i:s');
+            $a->lien = makepay_link($e->id);
+            $tab[] = $a;
+        }
+
+        $links = $links->toArray();
+        $links['data'] = $tab;
+
+        return $this->success("LIENS DE PAIEMENTS", $links);
     }
 
     public function pay_link()
@@ -434,10 +422,10 @@ class MarchandController extends Controller
             request()->all(),
             [
                 'devise' => 'required|in:CDF,USD',
-                'amount' => 'required|integer|',
+                'amount' => 'required|numeric|',
                 'name' => 'required|max:100',
-                'montant_fixe' => 'sometimes',
-                'devise_fixe' => 'sometimes',
+                'montant_fixe' => 'required|in:1,0',
+                // 'devise_fixe' => 'required|in:1,0',
             ]
         );
 
@@ -448,8 +436,8 @@ class MarchandController extends Controller
         $nom = request()->name;
         $devise = request()->devise;
         $montant = request()->amount;
-        $montant_fixe = !request()->has('montant_fixe');
-        $devise_fixe = !request()->has('devise_fixe');
+        $montant_fixe = request('montant_fixe');
+        $devise_fixe = 1; // request('devise_fixe');
 
         if ($devise == 'CDF' and $montant < 500) {
             return $this->error("Le montant minimum de paiement est de 500 CDF");
@@ -485,5 +473,27 @@ class MarchandController extends Controller
         }
         $id->delete();
         return $this->success('Lien de paiement supprimé');
+    }
+
+    public function pin_check()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'pin' => 'required|integer',
+            ]
+        );
+        if ($validator->fails()) {
+            return $this->error(implode(', ', $validator->errors()->all()));
+        }
+        $pin = request('pin');
+
+        if ($pin != $user->pin) {
+            return $this->error("Pin non valide");
+        }
+
+        return $this->success('Pin valide');
     }
 }

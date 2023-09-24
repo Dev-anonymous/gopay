@@ -22,8 +22,7 @@
                 <div class="col-md-12">
                     <x-error />
                     <div class="table-responsive">
-                        <table tdata class="table table-hover font-weight-bold table-striped"
-                            style="width: 100%">
+                        <table tdata class="table table-hover font-weight-bold table-striped" style="width: 100%">
                             <thead class="table-dark text-nowrap">
                                 <th></th>
                                 <th>NOM</th>
@@ -59,8 +58,8 @@
                             </div>
                             <label for="" class="mb-4">Ex : DON, PAIEMENT</label>
                             <div class="form-outline mb-4">
-                                <input id="form1Example1" required name="amount" type="number" min="1"
-                                    class="form-control" />
+                                <input id="form1Example1" required step="0.01" name="amount" type="number"
+                                    min="1" class="form-control" />
                                 <label class="form-label" for="form1Example1">Montant de paiement</label>
                             </div>
                             <div class="mb-4">
@@ -71,8 +70,8 @@
                             </div>
                             <div class="form-outline mb-4 input-group flex-nowrap">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="montant_fixe" id="eer" />
-                                    <label class="form-check-label" for="eer">
+                                    <input class="form-check-input" type="checkbox" id="montant_fixe" />
+                                    <label class="form-check-label" for="montant_fixe">
                                         Autoriser le payeur à payer un montant autre que celui renseigné
                                     </label>
                                 </div>
@@ -166,7 +165,9 @@
                 btn.find('i').removeClass()
                     .addClass('spinner-border spinner-border-sm');
                 var data = form.serialize();
-                data += "&phone=" + encodeURIComponent('+243' + $('#phone').val());
+                var mf = !$('#montant_fixe')[0].checked;
+                data += "&montant_fixe=" + (mf ? '1' : '0');
+
                 rep = $('#rep', form);
                 rep.slideUp();
                 $.ajax({

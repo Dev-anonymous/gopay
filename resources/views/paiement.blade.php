@@ -75,7 +75,7 @@
                                     <div class="col">
                                         <div class="form-outline mb-4">
                                             <input id="form1Example1" required value="{{ $link->montant }}" type="number"
-                                                name="amount" min="1" class="form-control"
+                                                name="amount" step="0.01" class="form-control"
                                                 @if ($link->montant_fixe == 1) disabled @endif />
                                             <label class="form-label" for="form1Example1">Montant à payer </label>
                                         </div>

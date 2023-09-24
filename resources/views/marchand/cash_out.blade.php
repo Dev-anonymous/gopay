@@ -57,8 +57,8 @@
                             </h6>
                             <hr>
                             <div class="form-outline mb-4">
-                                <input id="form1Example1" required type="number" name="montant" class="form-control" />
-                                <label class="form-label" for="form1Example1">Transferer un montant de </label>
+                                <input id="form1Example1" required type="number" step="0.01" name="montant" class="form-control" />
+                                <label class="form-label" for="form1Example1">Transférer un montant de </label>
                             </div>
                             <div class="mb-4">
                                 <select class='form-control' name="devise">

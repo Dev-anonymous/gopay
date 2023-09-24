@@ -66,7 +66,7 @@
                             </p>
                             <hr>
                             <div class="form-outline mb-4">
-                                <input id="form1Example1" required type="number" name="amount" min="1"
+                                <input id="form1Example1" required type="number" step="0.01" name="amount" min="1"
                                     class="form-control" />
                                 <label class="form-label" for="form1Example1">Montant à payer </label>
                             </div>

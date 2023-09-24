@@ -64,6 +64,7 @@ class AuthController extends Controller
         return $this->success("You are now connected.", [
             'token' => $user->createToken('token_' . time())->plainTextToken,
             'role' => $user->user_role,
+            'user' => $user
         ]);
     }
 
