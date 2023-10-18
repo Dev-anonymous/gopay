@@ -102,7 +102,7 @@ class PayementController extends Controller
             return $this->error('Ref ?', 400);
         }
         $ok =  false;
-        $flex = Fp::where(['ref' => $ref, 'transaction_was_failled' => 0])->first();
+        $flex = Fp::where(['ref' => $ref])->first();
 
         if ($flex) {
             $orderNumber = @json_decode($flex->pay_data)->apiresponse->orderNumber;
@@ -113,6 +113,7 @@ class PayementController extends Controller
                         $paydata = json_decode($flex->pay_data);
                         saveData($paydata, $flex);
                         $ok =  true;
+                        $flex->update(['transaction_was_failled' => 0]);
                     }
                 } else {
                     if ($t === false) {
