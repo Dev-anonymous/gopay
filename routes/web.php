@@ -5,7 +5,6 @@ use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\PayementController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\MarchandWebController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/payment-callback/{cb_code?}', [PayementController::class, 'payCallBack'])->name('payment.callback.web');

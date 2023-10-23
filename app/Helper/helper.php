@@ -231,24 +231,24 @@ function saveData($payedata, $e)
     if ($user) {
         $compte = $user->comptes()->first();
         $trans_data = (array) $payedata->paydata->trans_data;
-        DB::beginTransaction();
-        $trans_data['date'] = now('Africa/Lubumbashi');
-        Transaction::create($trans_data);
-        $did = $trans_data['devise_id'];
-        $mt = $trans_data['montant'];
-        $solde = $compte->soldes()->where(['devise_id' => $did]);
-        $solde->increment('montant', $mt);
-        $dev = strtolower(Devise::where('id', $did)->first()->devise);
-        $appsolde = SoldeApp::first();
-        $inc = $mt * COMMISSION;
+        DB::transaction(function () use ($compte, $trans_data, $e) {
+            $trans_data['date'] = now('Africa/Lubumbashi');
+            Transaction::create($trans_data);
+            $did = $trans_data['devise_id'];
+            $mt = $trans_data['montant'];
+            $solde = $compte->soldes()->where(['devise_id' => $did]);
+            $solde->increment('montant', $mt);
+            $dev = strtolower(Devise::where('id', $did)->first()->devise);
+            $appsolde = SoldeApp::first();
+            $inc = $mt * COMMISSION;
 
-        if (!$appsolde) {
-            SoldeApp::create(["solde_$dev" => $inc]);
-        } else {
-            SoldeApp::first()->increment("solde_$dev", $inc);
-        }
-        $e->update(['is_saved' => 1]);
-        DB::commit();
+            if (!$appsolde) {
+                SoldeApp::create(["solde_$dev" => $inc]);
+            } else {
+                SoldeApp::first()->increment("solde_$dev", $inc);
+            }
+            $e->update(['is_saved' => 1]);
+        });
     }
 }
 

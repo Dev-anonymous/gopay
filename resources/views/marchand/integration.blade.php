@@ -115,7 +115,7 @@
                                         Header : x-api-key:[API_KEY]
                                     </small>
                                 </div>
-                                <p># Vérifier l'état de la transaction.</p>
+                                <p># Vérifie l'état de la transaction.</p>
                                 <P>
                                     Reponse de la requête :
                                 </P>
@@ -129,7 +129,12 @@
                         </div>
                         <div class="card-footer">
                             <p>Télécharger le projet laravel avec modèle d'intégration de l'API. </p>
-                            <a href="" class="btn btn-sm btn-dark mb-5">
+                            <a href="{{ asset('GoPAY_DEMO_INTEGRATION.zip') }}" class="btn btn-sm btn-dark mb-5">
+                                <i class="fa fa-download">Télécharger</i>
+                            </a>
+
+                            <p>Télécharger l'application Android GoPAY </p>
+                            <a href="{{ asset('GoPAY.apk') }}" class="btn btn-sm btn-dark mb-5">
                                 <i class="fa fa-download">Télécharger</i>
                             </a>
                         </div>

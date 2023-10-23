@@ -102,14 +102,16 @@ class PayementController extends Controller
             return $this->error('Ref ?', 400);
         }
         $ok =  false;
-        $flex = Fp::where(['ref' => $ref])->first();
+        $is_saved = 0;
+        $flex = Fp::where(['ref' => $ref])->lockForUpdate()->first();
 
         if ($flex) {
             $orderNumber = @json_decode($flex->pay_data)->apiresponse->orderNumber;
             if ($orderNumber) {
                 $t = transaction_was_success($orderNumber);
                 if ($t === true) {
-                    if ($flex->is_saved != 1) {
+                    $is_saved = @Fp::where(['ref' => $ref])->first()->is_saved;
+                    if ($is_saved !== 1) {
                         $paydata = json_decode($flex->pay_data);
                         saveData($paydata, $flex);
                         $ok =  true;
@@ -123,7 +125,7 @@ class PayementController extends Controller
             }
         }
 
-        if ($ok || @$flex->is_saved == 1) {
+        if ($ok || $is_saved === 1) {
             return $this->success("Votre transaction est effectuée avec succès.");
         } else {
             $m = "Aucune transaction trouvée.";
