@@ -258,14 +258,15 @@ class AdminController extends Controller
         if (request()->status == 'TRAITÉE') {
             $solde  = $dem->solde->montant;
             $montant = $dem->montant;
+            $tot = $montant + $montant * COMMISSION;
             $bus = $dem->solde->compte->user->business_name;
 
-            if ($solde < $montant) {
+            if ($solde < $tot) {
                 $s = formatMontant($solde, $dem->solde->devise->devise);
-                $m = formatMontant($montant, $dem->solde->devise->devise);
+                $m = formatMontant($tot, $dem->solde->devise->devise);
                 return $this->error("$bus a un solde de $s, impossible de traiter cette demande de $m");
             }
-            $dem->solde->decrement('montant', $montant);
+            $dem->solde->decrement('montant', $tot);
         }
 
         $dem->update($data);
