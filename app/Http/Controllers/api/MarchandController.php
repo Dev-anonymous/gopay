@@ -176,8 +176,8 @@ class MarchandController extends Controller
         $devise = request()->devise;
         $montant = request()->montant;
         $telephone = request()->telephone;
-        if ($devise == 'CDF' and $montant < 5000) {
-            return $this->error("Le montant minimum de transfert est de 5 000 CDF");
+        if ($devise == 'CDF' and $montant < 10000) {
+            return $this->error("Le montant minimum de transfert est de 10 000 CDF");
         } else {
             if ($montant < 5) {
                 return $this->error("Le montant minimum de transfert est de 5 USD");

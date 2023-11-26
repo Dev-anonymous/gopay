@@ -99,37 +99,63 @@ class PayementController extends Controller
     public function paycheck($ref = null)
     {
         if (!$ref) {
-            return $this->error('Ref ?', 400);
+            return $this->error('Ref ?');
         }
         $ok =  false;
         $is_saved = 0;
         $flex = Fp::where(['ref' => $ref])->lockForUpdate()->first();
 
-        if ($flex) {
-            $orderNumber = @json_decode($flex->pay_data)->apiresponse->orderNumber;
-            if ($orderNumber) {
-                $t = transaction_was_success($orderNumber);
-                if ($t === true) {
-                    $is_saved = @Fp::where(['ref' => $ref])->first()->is_saved;
-                    if ($is_saved !== 1) {
-                        $paydata = json_decode($flex->pay_data);
-                        saveData($paydata, $flex);
-                        $ok =  true;
-                        $flex->update(['transaction_was_failled' => 0]);
-                    }
-                } else {
-                    if ($t === false) {
-                        $flex->update(['transaction_was_failled' => 1]);
-                    }
+        if (!$flex) {
+            return response()->json([
+                'success' => false,
+                'message' => "Invalid reference number",
+                'transaction' => null
+            ]);
+        }
+
+        $pay_data = @json_decode($flex->pay_data);
+        $orderNumber = @$pay_data->apiresponse->orderNumber;
+        if ($orderNumber) {
+            $t = transaction_was_success($orderNumber);
+            if ($t === true) {
+                $is_saved = @Fp::where(['ref' => $ref])->first()->is_saved;
+                if ($is_saved !== 1) {
+                    $paydata = json_decode($flex->pay_data);
+                    saveData($paydata, $flex);
+                    $ok =  true;
+                    $flex->update(['transaction_was_failled' => 0]);
+                }
+            } else {
+                if ($t === false) {
+                    $flex->update(['transaction_was_failled' => 1]);
                 }
             }
         }
 
-        if ($ok || $is_saved === 1) {
-            return $this->success("Votre transaction est effectuée avec succès.");
+
+        if ($ok || $is_saved === 1 || @$flex->is_saved === 1) {
+            $data = [
+                'status' => 'success',
+                'amount' => $pay_data->paydata->montant,
+                'currency' => $pay_data->paydata->devise,
+                'trans_id' => $pay_data->paydata->trans_data->trans_id,
+                'source' => $pay_data->paydata->trans_data->source,
+                'date' => $pay_data->paydata->trans_data->date,
+            ];
+            return response()->json([
+                'success' => true,
+                'message' => "Votre transaction est effectuée avec succès.",
+                'transaction' => $data
+            ]);
         } else {
-            $m = "Aucune transaction trouvée.";
-            return $this->error($m, 200);
+            $data = [
+                'status' => @$t === false ? 'failed' : 'pending'
+            ];
+            return response()->json([
+                'success' => false,
+                'message' => "Aucune transaction trouvée.",
+                'transaction' => $data
+            ]);
         }
     }
 

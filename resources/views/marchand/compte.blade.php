@@ -100,7 +100,7 @@
                                 <label class="form-label" for="form1Example1">Telephone</label>
                             </div>
                             <div class="form-outline mb-4">
-                                <input id="form1Example1" required name="business_name" value="{{ $user->business_name }}"
+                                <input id="form1Example1" disabled value="{{ $user->business_name }}"
                                     class="form-control" />
                                 <label class="form-label" for="form1Example1">Nom du business</label>
                             </div>

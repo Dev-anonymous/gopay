@@ -178,7 +178,9 @@
                                 link: '{{ $link->id }}'
                             },
                             success: function(res) {
-                                if (res.success) {
+                                var trans = res.transaction;
+                                var status = trans?.status;
+                                if (status === 'success') {
                                     clearInterval(interv);
                                     var form = $('#f-log');
                                     var btn = $(':submit', form).attr('disabled', false);
@@ -262,7 +264,7 @@
 
                                 clearInterval(interv);
                                 REF = res.data.ref;
-                                interv = setInterval(callback, 1000);
+                                interv = setInterval(callback, 3000);
                                 $('#btnclose').hide();
                                 $('#btncancel').show();
 

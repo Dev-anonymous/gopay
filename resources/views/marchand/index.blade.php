@@ -62,7 +62,7 @@
                                     </div>
                                     <div class="text-end">
                                         <h3 class="font-weight-bold">{{ $trans }}</h3>
-                                        <p class="mb-0">Transations</p>
+                                        <p class="mb-0">Transactions</p>
                                     </div>
                                 </div>
                             </div>

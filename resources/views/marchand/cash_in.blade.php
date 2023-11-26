@@ -31,20 +31,7 @@
                                 <th class="text-center">NUMERO</th>
                                 <th class="text-right">DATE</th>
                             </thead>
-                            <tbody>
-                                {{-- foreach ($trans as $k => $v)
-                                    <tr>
-                                        <td>{{ $k + 1 }}</td>
-                                        <td>{{ $v->trans_id }}</td>
-                                        <td>{{ $v->montant }}</td>
-                                        <td>
-                                            {{ $v->tel }} <br>
-                                            <small style="font-size: 12px">Reference : {{ $v->ref }}</small>
-                                        </td>
-                                        <td>{{ $v->date }}</td>
-                                    </tr>
-                                @endforeach --}}
-                            </tbody>
+                            <tbody></tbody>
                         </table>
                     </div>
                 </div>
@@ -62,12 +49,12 @@
                     <div class="modal-body">
                         <div class="bg-white rounded shadow-lg p-5">
                             <p>
-                                Saisisser le montant et le numéro du client qui veut effectuer la transation.
+                                Saisisser le montant et le numéro du client qui veut effectuer la transaction.
                             </p>
                             <hr>
                             <div class="form-outline mb-4">
-                                <input id="form1Example1" required type="number" step="0.01" name="amount" min="1"
-                                    class="form-control" />
+                                <input id="form1Example1" required type="number" step="0.01" name="amount"
+                                    min="1" class="form-control" />
                                 <label class="form-label" for="form1Example1">Montant à payer </label>
                             </div>
                             <div class="mb-4">
@@ -121,7 +108,9 @@
                             ref: REF
                         },
                         success: function(res) {
-                            if (res.success) {
+                            var trans = res.transaction;
+                            var status = trans?.status;
+                            if (status === 'success') {
                                 clearInterval(interv);
                                 var form = fval;
                                 var btn = $(':submit', form).attr('disabled', false);
@@ -200,7 +189,7 @@
 
                             clearInterval(interv);
                             REF = res.data.ref;
-                            interv = setInterval(callback, 1000);
+                            interv = setInterval(callback, 3000);
                             $('#btnclose').hide();
                             $('#btncancel').show();
 

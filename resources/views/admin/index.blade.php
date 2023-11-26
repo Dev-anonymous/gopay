@@ -67,7 +67,7 @@
                                     </div>
                                     <div class="text-end">
                                         <h3>{{ $all->nb_trans }}</h3>
-                                        <p class="mb-0">Transations</p>
+                                        <p class="mb-0">Transactions</p>
                                     </div>
                                 </div>
                             </div>

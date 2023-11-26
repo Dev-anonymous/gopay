@@ -17,7 +17,7 @@ define('FLEXPAY_HEADERS', [
 ]);
 define('MARCHAND', 'GROUPER');
 define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
-define('COMMISSION', 0.03);
+define('COMMISSION', 0.07);
 
 // function getMimeType($filename)
 // {

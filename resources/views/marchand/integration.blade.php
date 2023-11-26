@@ -123,6 +123,14 @@
 {
     success:true,
     message:"Votre transaction est effectuée avec succès.",
+    transaction: {
+        "status": "success",
+        "amount": "4000",
+        "currency": "CDF",
+        "trans_id": "TRANS-001.94786.53389",
+        "source": "API",
+        "date": "2023-08-06T17:18:17.755517Z"
+    }
 }
 </pre>
                             </blockquote>
