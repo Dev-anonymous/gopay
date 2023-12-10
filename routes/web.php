@@ -5,6 +5,7 @@ use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\PayementController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\MarchandWebController;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/payment-callback/{cb_code?}', [PayementController::class, 'payCallBack'])->name('payment.callback.web');
@@ -38,4 +39,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::get('pay-link', [MarchandWebController::class, 'lien_pay'])->name('marchand.web.lien_pay');
         });
     });
+});
+
+
+Route::get('a', function () {
+    foreach (Transaction::whereNull('ref')->get() as $el) {
+        $ref = @json_decode($el->data)->ref;
+        if ($ref) {
+            $el->update(compact('ref'));
+        }
+    }
 });
