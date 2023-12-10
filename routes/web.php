@@ -41,16 +41,3 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     });
 });
 
-
-Route::get('a', function () {
-    foreach (Transaction::whereNull('ref')->get() as $el) {
-        $ref = @json_decode($el->data)->ref;
-        if ($ref) {
-            try {
-                $el->update(compact('ref'));
-            } catch (\Throwable $th) {
-                $el->update(['ref' => $ref . "--" . rand(100, 99999)]);
-            }
-        }
-    }
-});
