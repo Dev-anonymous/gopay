@@ -65,12 +65,13 @@ class PayementController extends Controller
             'montant' => $montant,
             'telephone' => $telephone,
             'trans_data' => [
+                'ref' => $ref,
                 'source' => $_source,
                 'compte_id' => $compte->id,
                 'devise_id' => Devise::where('devise', $dev)->first()->id,
                 'montant' => $montant,
                 'trans_id' => trans_id('CASH.IN', $user),
-                'date' => now('Africa/Lubumbashi'),
+                'date' => now('Africa/Lubumbashi')->format('Y-m-d H:i:s'),
                 'data' => json_encode([
                     'telephone' => $telephone,
                     'ref' => $ref,
@@ -262,7 +263,7 @@ class PayementController extends Controller
         /** @var \App\Models\User $user **/
         $user = $link->compte->user;
         $key = $user->apikeys()->where('type', 'production')->first()->key;
-        $request = Request::create(route('pay.check', $ref), 'POST');
+        $request = Request::create(route('pay.check', $ref));
         $request->headers->set('x-api-key', $key);
         $req = app()->handle($request);
         if ($req->status() != 200) {

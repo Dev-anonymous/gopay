@@ -68,9 +68,9 @@ Route::post('/feedback', [UserController::class, 'feedback'])->name('feedback');
 Route::middleware('paymentProd.mdwr')->group(function () {
     Route::prefix('v1')->group(function () {
         Route::post('/payment/init', [PayementController::class, 'payinit'])->name('pay.init');
-        Route::post('/payment/check/{ref?}', [PayementController::class, 'paycheck'])->name('pay.check');
+        Route::get('/payment/check/{ref?}', [PayementController::class, 'paycheck'])->name('pay.check');
     });
 });
 
 Route::post('/web/payment/init', [PayementController::class, 'web_pay_init'])->name('web.pay.init');
-Route::post('/web/payment/check', [PayementController::class, 'web_pay_check'])->name('web.pay.check');
+Route::get('/web/payment/check', [PayementController::class, 'web_pay_check'])->name('web.pay.check');

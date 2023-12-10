@@ -172,7 +172,6 @@
                     var x =
                         $.ajax({
                             url: '{{ route('web.pay.check') }}',
-                            type: 'POST',
                             data: {
                                 ref: REF,
                                 link: '{{ $link->id }}'
@@ -205,6 +204,30 @@
                                                 CANSHOW = true;
                                             }
                                         })
+                                    }
+                                } else if (status === 'failed') {
+                                    clearInterval(interv);
+                                    $('#btncancel').hide();
+                                    $('#btnclose').show();
+                                    var form = $('#f-log');
+                                    var btn = $(':submit', form).attr('disabled', false);
+                                    btn.html(
+                                        '<i class="fa fa-money-check-dollar"></i> Payer'
+                                    );
+                                    btn.removeClass('btn-danger').addClass('btn-dark');
+                                    var rep = $('#rep', form);
+                                    rep.html(res.message).removeClass();
+                                    rep.addClass('alert alert-danger');
+                                    $(xhr).each(function(i, e) {
+                                        e.abort();
+                                    });
+                                    if (CANSHOW) {
+                                        CANSHOW = false;
+                                        Swal.fire(
+                                            'TRANSACTION ECHOUEE !',
+                                            "La transaction échouée, vous avez peut-être saisi un mauvais Pin. Merci de réessayer.",
+                                            'error'
+                                        )
                                     }
                                 }
                             }

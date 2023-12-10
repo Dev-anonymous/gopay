@@ -328,7 +328,7 @@ class MarchandController extends Controller
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $key = $user->apikeys()->where('type', 'production')->first()->key;
-        $request = Request::create(route('pay.check', $ref), 'POST');
+        $request = Request::create(route('pay.check', $ref));
         $request->headers->set('x-api-key', $key);
         $req = app()->handle($request);
         if ($req->status() != 200) {

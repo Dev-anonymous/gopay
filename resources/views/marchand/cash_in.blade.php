@@ -133,6 +133,30 @@
                                         }
                                     })
                                 }
+                            } else if (status === 'failed') {
+                                clearInterval(interv);
+                                $('#btncancel').hide();
+                                $('#btnclose').show();
+                                var form = fval;
+                                var btn = $(':submit', form).attr('disabled', false);
+                                btn.html(
+                                    '<i class="fa fa-money-bill-transfer"></i> Initier la transaction'
+                                );
+                                btn.removeClass('btn-danger').addClass('btn-dark');
+                                var rep = $('#rep', form);
+                                rep.html(res.message).removeClass();
+                                rep.addClass('alert alert-danger');
+                                $(xhr).each(function(i, e) {
+                                    e.abort();
+                                });
+                                if (CANSHOW) {
+                                    CANSHOW = false;
+                                    Swal.fire(
+                                        'TRANSACTION ECHOUEE !',
+                                        "La transaction échouée, le client a peut-être saisi un mauvais Pin. Merci de réessayer.",
+                                        'error'
+                                    )
+                                }
                             }
                         }
                     });

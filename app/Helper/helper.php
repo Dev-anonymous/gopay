@@ -169,7 +169,7 @@ function startFlexPay($devise, $montant, $telephone, $ref, $cb_code)
             $rep['data'] = $jsonRes;
         } else {
             $rep['status'] = true;
-            $rep['message'] = "Transaction initialisée avec succès. Veuillez saisir votre code Mobile Money pour confirmer la transaction.";
+            $rep['message'] = "Transaction initialisée avec succès. Veuillez saisir votre Pin mobile Money pour confirmer la transaction.";
             $rep['data'] = $jsonRes;
         }
     }
@@ -214,11 +214,9 @@ function transaction_was_success($orderNumber)
         if ($code == "0") {
             if ($jsonRes->transaction->status == '0') {
                 $status = true;
-            } else {
+            } else if ($jsonRes->transaction->status == '1') { // 2=> en attente
                 $status = false;
             }
-        } else {
-            $status = false;
         }
     }
     return $status;
