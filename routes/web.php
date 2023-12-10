@@ -49,7 +49,7 @@ Route::get('a', function () {
             try {
                 $el->update(compact('ref'));
             } catch (\Throwable $th) {
-                $el->update(['ref' => $ref . "--" . time()]);
+                $el->update(['ref' => $ref . "--" . rand(100, 99999)]);
             }
         }
     }
