@@ -46,7 +46,11 @@ Route::get('a', function () {
     foreach (Transaction::whereNull('ref')->get() as $el) {
         $ref = @json_decode($el->data)->ref;
         if ($ref) {
-            $el->update(compact('ref'));
+            try {
+                $el->update(compact('ref'));
+            } catch (\Throwable $th) {
+                $el->update(['ref' => $ref . "--" . time()]);
+            }
         }
     }
 });
