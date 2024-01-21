@@ -52,7 +52,7 @@
                     <div class="modal-body">
                         <div class="bg-white rounded shadow-lg p-5">
                             <h6 class="font-weight-bold small text-danger">
-                                <i class="fa fa-info-circle"></i> Les frais de transaction sont de {{ COMMISSION * 100 }}%
+                                <i class="fa fa-info-circle"></i> Les frais de transaction sont de {{ $frais }}%
                                 sur le montant
                             </h6>
                             <hr>
