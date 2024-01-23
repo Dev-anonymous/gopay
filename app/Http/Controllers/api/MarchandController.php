@@ -222,7 +222,7 @@ class MarchandController extends Controller
             $c = commission($user) * 100;
             $mo = formatMontant($montant, $devise);
             $so = formatMontant($montant_solde, $devise);
-            $m = "Demande de transfert de $user->business_name, $user->name </br>Montant : $mo </br> Solde : $so </br> Commission: $c %";
+            $m = "Demande de transfert de $user->business_name, $user->name </br>Montant : $mo au $telephone </br> Solde : $so </br> Commission: $c %";
             $admin->notify(new SendMoney($m));
             $sent = true;
         } catch (\Throwable $th) {
@@ -236,7 +236,7 @@ class MarchandController extends Controller
             DB::commit();
         }
 
-        return $this->success("Votre demande de transfert a été enregistrée et sera traité dans 24h. Merci.");
+        return $this->success("Votre demande de transfert a été enregistrée et sera traité sous peu. Merci.");
     }
 
     public function get_demande_tranfert()
