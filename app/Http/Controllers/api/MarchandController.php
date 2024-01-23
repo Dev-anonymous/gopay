@@ -217,7 +217,7 @@ class MarchandController extends Controller
             'trans_id' => trans_id('CASH.OUT', $user)
         ]);
         $admin = User::where('user_role', 'admin')->first();
-        $sent = false;
+        $sent = false; 
         try {
             $c = commission($user) * 100;
             $mo = formatMontant($montant, $devise);
