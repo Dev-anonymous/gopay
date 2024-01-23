@@ -307,6 +307,7 @@ class AdminController extends Controller
         if ($validator->fails()) {
             return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
+        
         $data = $validator->validated();
         unset($data['id']);
         $k =  Apikey::where('id', request()->id)->first();
