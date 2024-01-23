@@ -52,12 +52,24 @@
                     <div class="modal-body">
                         <div class="bg-white rounded shadow-lg p-5">
                             <h6 class="font-weight-bold small text-danger">
-                                <i class="fa fa-info-circle"></i> Les frais de transaction sont de {{ $frais }}%
-                                sur le montant
+
                             </h6>
+                            <div class="alert alert-warning">
+                                <b>
+                                    <i class="fa fa-info-circle"></i> Les frais de transaction sont de {{ $frais }}%
+                                    sur le montant
+                                </b>
+                            </div>
+                            <div class="alert alert-danger">
+                                <b>
+                                    <i class="fa fa-exclamation-triangle"></i> Il est fortement récommandé d'utiliser un
+                                    numéro Orange pour le transfert de fonds.
+                                </b>
+                            </div>
                             <hr>
                             <div class="form-outline mb-4">
-                                <input id="form1Example1" required type="number" step="0.01" name="montant" class="form-control" />
+                                <input id="form1Example1" required type="number" step="0.01" name="montant"
+                                    class="form-control" />
                                 <label class="form-label" for="form1Example1">Transférer un montant de </label>
                             </div>
                             <div class="mb-4">

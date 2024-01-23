@@ -17,7 +17,6 @@ define('FLEXPAY_HEADERS', [
 ]);
 define('MARCHAND', 'GROUPER');
 define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
-define('COMMISSION', 0.07);
 
 // function getMimeType($filename)
 // {
@@ -229,7 +228,7 @@ function saveData($payedata, $e)
     if ($user) {
         $compte = $user->comptes()->first();
         $trans_data = (array) $payedata->paydata->trans_data;
-        DB::transaction(function () use ($compte, $trans_data, $e) {
+        DB::transaction(function () use ($compte, $trans_data, $e, $user) {
             $trans_data['date'] = now('Africa/Lubumbashi');
             Transaction::create($trans_data);
             $did = $trans_data['devise_id'];
@@ -238,7 +237,7 @@ function saveData($payedata, $e)
             $solde->increment('montant', $mt);
             $dev = strtolower(Devise::where('id', $did)->first()->devise);
             $appsolde = SoldeApp::first();
-            $inc = $mt * COMMISSION;
+            $inc = $mt * commission($user);
 
             if (!$appsolde) {
                 SoldeApp::create(["solde_$dev" => $inc]);
@@ -274,12 +273,10 @@ function total_cashout()
     return order_dev($t);
 }
 
-function tot_solde_marchand($idcompte = null, $commission = false)
+function tot_solde_marchand()
 {
     $tot = Solde::selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
-    if ($idcompte) {
-        $tot = $tot->where('compte_id', $idcompte);
-    }
+    $comm = User::where('user_role', 'marchand')->sum('commission');
 
     $tot = $tot->get()->pluck('montant', 'devise.devise')->all();
     $t = [];
@@ -289,10 +286,8 @@ function tot_solde_marchand($idcompte = null, $commission = false)
     @$t['CDF'] ?: ($t['CDF'] = 0.0);
     @$t['USD'] ?: ($t['USD'] = 0.0);
 
-    if ($commission) {
-        $t['CDF'] -= $t['CDF'] * COMMISSION;
-        $t['USD'] -= $t['USD'] * COMMISSION;
-    }
+    $t['CDF'] -= $t['CDF'] * $comm;
+    $t['USD'] -= $t['USD'] * $comm;
 
     return order_dev($t);
 }
@@ -320,7 +315,7 @@ function all_trans()
     $tab['solde'] = solde();
     $tab['cashout'] = total_cashout();
     $tab['trans'] = total_transaction();
-    $tab['solde_marchand'] = tot_solde_marchand(null, true);
+    $tab['solde_marchand'] = tot_solde_marchand();
 
     $tab['nb_trans'] = Transaction::count();
     return (object) $tab;
@@ -346,4 +341,16 @@ function makepay_link(int $id)
 function getpay_link($encoded)
 {
     return  (int) encode($encoded, false);
+}
+
+
+function commission(User $user = null)
+{
+    $com = 0;
+    if ($user) {
+        $com = (float) ($user->commission);
+    } else {
+        $com = (float) (auth()->user()->commission);
+    }
+    return $com;
 }

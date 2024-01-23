@@ -29,6 +29,7 @@
                                     <div loader class="spinner-border spinner-border-sm"></div>
                                 </th>
                                 <th>BUSINESS</th>
+                                <th>COMMISSION</th>
                                 <th>MARCHAND</th>
                                 <th>CONTACT</th>
                                 <th>NUMERO COMPTE</th>
@@ -70,6 +71,10 @@
                             <div class="form-outline mb-4">
                                 <input id="form1Example1" required name="business_name" class="form-control" />
                                 <label class="form-label" for="form1Example1">Nom du business</label>
+                            </div>
+                            <div class="form-outline mb-4">
+                                <input id="form1Example1" type="number" value="3.5" step="0.1" min="1" required name="commission" class="form-control" />
+                                <label class="form-label" for="form1Example1">Commission en %</label>
                             </div>
                             <div class="form-outline mb-4">
                                 <input type="password" name="password" id="form1Example2" class="form-control" required />
@@ -180,6 +185,7 @@
                                 <tr>
                                     <td>${i+1}</td>
                                     <td>${e.business_name}</td>
+                                    <td>${e.commission}</td>
                                     <td>${e.name}</td>
                                     <td>${e.phone}<br>${e.email}</td>
                                     <td>${e.numero_compte}</td>

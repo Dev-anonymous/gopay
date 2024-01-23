@@ -106,7 +106,7 @@
                                     @endforeach
                                     <p class="mb-0">Solde marchands
                                         <small class="small font-italic">
-                                            (-{{ COMMISSION * 100 }}% )
+                                            ( sans commission )
                                         </small>
                                     </p>
                                 </div>

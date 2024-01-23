@@ -29,6 +29,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $user_role
  * @property string|null $pin
  * @property string|null $business_name
+ * @property float $commission
  *
  * @property Collection|Apikey[] $apikeys
  * @property Collection|Compte[] $comptes
@@ -41,6 +42,10 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $table = 'users';
+
+    protected $casts = [
+        'commission' => 'float'
+    ];
 
     protected $dates = [
         'email_verified_at',
@@ -63,7 +68,8 @@ class User extends Authenticatable
         'avatar',
         'user_role',
         'pin',
-        'business_name'
+        'business_name',
+        'commission'
     ];
 
     public function apikeys()

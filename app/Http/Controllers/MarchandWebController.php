@@ -31,12 +31,8 @@ class MarchandWebController extends Controller
 
     public function cash_out()
     {
-        $frais = COMMISSION * 100;
-        $bn = auth()->user()->business_name;
-        if(strtolower($bn) == 'thefield'){
-            $frais = 3.5;
-        }
-        return view('marchand.cash_out', compact('frais') );
+        $frais = commission() * 100;
+        return view('marchand.cash_out', compact('frais'));
     }
 
     public function cash_in()

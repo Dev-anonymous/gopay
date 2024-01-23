@@ -176,10 +176,10 @@ class MarchandController extends Controller
         $devise = request()->devise;
         $montant = request()->montant;
         $telephone = request()->telephone;
-        if ($devise == 'CDF' and $montant < 10000) {
+        if ($devise == 'CDF' and $montant < 2000) {
             return $this->error("Le montant minimum de transfert est de 2000 CDF");
         } else {
-            if ($montant < 5) {
+            if ($montant < 1) {
                 return $this->error("Le montant minimum de transfert est de 1 USD");
             }
         }
@@ -199,8 +199,11 @@ class MarchandController extends Controller
         $solde = $compte->soldes()->where(['devise_id' => $dev->id])->first();
         $montant_solde = $solde->montant;
 
-        if ($montant_solde < $montant) {
-            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre demande de transfert de $montant {$solde->devise->devise} ne peut etre enregistrée pour le moment.", 200);
+        $comm = $montant * commission();
+        $m =  $montant + $comm;
+
+        if ($montant_solde < $m) {
+            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre demande de transfert de $m {$solde->devise->devise} ne peut etre enregistrée pour le moment.", 200);
         }
         DemandeTransfert::create([
             'solde_id' => $solde->id,

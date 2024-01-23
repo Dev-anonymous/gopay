@@ -60,6 +60,7 @@ class AdminController extends Controller
             $o = (object)[];
             $o->id = $e->id;
             $o->business_name = $e->business_name;
+            $o->commission = number_format(commission($e) * 100, 1) . " %";
             $o->name = $e->name;
             $o->phone = $e->phone;
             $o->email = $e->email;
@@ -87,6 +88,7 @@ class AdminController extends Controller
             [
                 'name' => 'required|string|max:45',
                 'business_name' => 'required|max:45|unique:users',
+                'commission' => 'required|numeric|min:2',
                 'email' => 'sometimes|email|max:45|unique:users',
                 'phone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
                 'password' => 'required|string|min:6|',
@@ -106,6 +108,7 @@ class AdminController extends Controller
         $data = $validator->validate();
         $data['password'] = Hash::make($data['password']);
         $data['user_role'] = 'marchand';
+        $data['commission'] = request('commission') / 100;
 
         DB::beginTransaction();
         try {
@@ -256,9 +259,10 @@ class AdminController extends Controller
 
         DB::beginTransaction();
         if (request()->status == 'TRAITÉE') {
+            $user = $dem->solde->compte->user;
             $solde  = $dem->solde->montant;
             $montant = $dem->montant;
-            $tot = $montant + $montant * COMMISSION;
+            $tot = $montant + $montant * commission($user);
             $bus = $dem->solde->compte->user->business_name;
 
             if ($solde < $tot) {

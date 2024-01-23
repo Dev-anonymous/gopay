@@ -15,7 +15,7 @@ class AdminWebController extends Controller
     {
         $marchands = User::where('user_role', 'marchand')->count();
         $all  = all_trans();
-         return view('admin/index', compact('marchands', 'all'));
+        return view('admin/index', compact('marchands', 'all'));
     }
 
     public function transaction()
