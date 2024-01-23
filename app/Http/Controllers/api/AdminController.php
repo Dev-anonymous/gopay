@@ -11,6 +11,7 @@ use App\Models\Feedback;
 use App\Models\Solde;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\MoneySent;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -258,8 +259,11 @@ class AdminController extends Controller
         $data['date_validation'] = now('Africa/Lubumbashi');
 
         DB::beginTransaction();
+        $mess = '';
+        $user = $dem->solde->compte->user;
+
+        $sub = null;
         if (request()->status == 'TRAITÉE') {
-            $user = $dem->solde->compte->user;
             $solde  = $dem->solde->montant;
             $montant = $dem->montant;
             $tot = $montant + $montant * commission($user);
@@ -271,6 +275,18 @@ class AdminController extends Controller
                 return $this->error("$bus a un solde de $s, impossible de traiter cette demande de $m");
             }
             $dem->solde->decrement('montant', $tot);
+            $mo = formatMontant($dem->montant, $dem->solde->devise->devise);
+            $mess = "Votre demande de transfert de $mo au numéro $dem->au_numero a été TRAITÉE : $nv";
+        } else {
+            $mo = formatMontant($dem->montant, $dem->solde->devise->devise);
+            $mess = "Votre demande de transfert de $mo au numéro $dem->au_numero a été rejetée raison : $nv";
+            $sub = 'Money Not sent';
+        }
+
+        try {
+            $user->notify(new MoneySent($sub, $mess));
+        } catch (\Throwable $th) {
+            //throw $th;
         }
 
         $dem->update($data);

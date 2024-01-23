@@ -7,8 +7,11 @@ use App\Models\DemandeTransfert;
 use App\Models\Devise;
 use App\Models\LienPaie;
 use App\Models\Transaction;
+use App\Models\User;
+use App\Notifications\SendMoney;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 use Yajra\DataTables\Facades\DataTables;
@@ -205,12 +208,34 @@ class MarchandController extends Controller
         if ($montant_solde < $m) {
             return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre demande de transfert de $m {$solde->devise->devise} ne peut etre enregistrée pour le moment.", 200);
         }
+
+        DB::beginTransaction();
         DemandeTransfert::create([
             'solde_id' => $solde->id,
             'au_numero' => $telephone, 'montant' => $montant,
             'date' => now('Africa/Lubumbashi'),
             'trans_id' => trans_id('CASH.OUT', $user)
         ]);
+        $admin = User::where('user_role', 'admin')->first();
+        $sent = false;
+        try {
+            $c = commission($user) * 100;
+            $mo = formatMontant($montant, $devise);
+            $so = formatMontant($montant_solde, $devise);
+            $m = "Demande de transfert de $user->business_name, $user->name </br>Montant : $mo </br> Solde : $so </br> Commission: $c %";
+            $admin->notify(new SendMoney($m));
+            $sent = true;
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+
+        if (!$sent) {
+            DB::rollBack();
+            return $this->error("Un petit problème est survenu, veuillez réessayer SVP.");
+        } else {
+            DB::commit();
+        }
+
         return $this->success("Votre demande de transfert a été enregistrée et sera traité dans 24h. Merci.");
     }
 
