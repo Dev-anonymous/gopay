@@ -206,7 +206,7 @@ class MarchandController extends Controller
         $m =  $montant + $comm;
 
         if ($montant_solde < $m) {
-            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre demande de transfert de $m {$solde->devise->devise} ne peut etre enregistrée pour le moment.", 200);
+            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre transfert de $m {$solde->devise->devise} ne peut etre traité pour le moment.", 200);
         }
 
         DB::beginTransaction();
@@ -217,26 +217,20 @@ class MarchandController extends Controller
             'trans_id' => trans_id('CASH.OUT', $user)
         ]);
         $admin = User::where('user_role', 'admin')->first();
-        $sent = false; 
         try {
             $c = commission($user) * 100;
             $mo = formatMontant($montant, $devise);
             $so = formatMontant($montant_solde, $devise);
-            $m = "Demande de transfert de $user->business_name, $user->name </br>Montant : $mo au $telephone </br> Solde : $so </br> Commission: $c %";
+            $da = now('Africa/Lubumbashi');
+            $m = "Demande de transfert de $user->business_name, $user->name </br>Montant : $mo au $telephone </br> Solde : $so </br> Commission: $c %, date $da";
             $admin->notify(new SendMoney($m));
-            $sent = true;
+            DB::commit();
         } catch (\Throwable $th) {
-            //throw $th;
-        }
-
-        if (!$sent) {
             DB::rollBack();
             return $this->error("Un petit problème est survenu, veuillez réessayer SVP.");
-        } else {
-            DB::commit();
         }
 
-        return $this->success("Votre demande de transfert a été enregistrée et sera traité sous peu. Merci.");
+        return $this->success("Votre transfert sera traité sous peu. Merci.");
     }
 
     public function get_demande_tranfert()

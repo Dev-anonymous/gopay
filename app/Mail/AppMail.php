@@ -16,9 +16,9 @@ class AppMail extends Mailable
      *
      * @return void
      */
-    public function __construct($msg)
+    public function __construct($data)
     {
-        $this->msg = $msg;
+        $this->data = $data;
     }
 
     /**
@@ -28,6 +28,6 @@ class AppMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Code de réinitialisation de mot de passe ' . config('app.name'))->markdown('emails.appmail', ['msg' => $this->msg]);
+        return $this->subject($this->data->subject)->markdown('emails.appmail', ['msg' => $this->data->msg]);
     }
 }

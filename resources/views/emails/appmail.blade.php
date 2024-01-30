@@ -1,6 +1,6 @@
 @component('mail::message')
 
-{{$msg}}
+{!! $msg !!}
 
 Cordialement,<br>
 {{ config('app.name') }}

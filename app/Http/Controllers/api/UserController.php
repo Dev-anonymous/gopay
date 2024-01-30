@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AppMail;
 use App\Models\Feedback;
 use App\Models\User;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -136,13 +138,19 @@ class UserController extends Controller
         }
         $data = $validator->validate();
         $data['date'] = now('Africa/Lubumbashi');
-        Feedback::create($data);
 
+        DB::beginTransaction();
+        Feedback::create($data);
         try {
-            $d = implode('<br>', $data);
-            $d = str_replace('<br>', "\n", $d);
-            // Mail::to('contact@gooomart.com')->send(new ContactMail($d));
+            $d = implode('</br> ## ', $data);
+            // $d = str_replace('<br>', "\n", $d);
+            $m['msg'] = $d;
+            $m['subject'] = "Feedback";
+            Mail::to('contact@gooomart.com')->send(new AppMail((object)$m));
+            DB::commit();
         } catch (\Throwable $th) {
+            DB::rollBack();
+            return $this->error("Un petit problème est survenu, veuillez réessayer SVP.");
         }
         return $this->success("Merci de nous avoir laisser votre message! nous le prenons avec beaucoup de considération et vous serez contacter si nécessaire. Merci.");
     }
