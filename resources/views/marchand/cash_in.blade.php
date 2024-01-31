@@ -49,7 +49,7 @@
                     <div class="modal-body">
                         <div class="bg-white rounded shadow-lg p-5">
                             <p>
-                                Saisisser le montant et le numéro du client qui veut effectuer la transaction.
+                                Saisissez le montant et le numéro du client qui veut effectuer la transaction.
                             </p>
                             <hr>
                             <div class="form-outline mb-4">

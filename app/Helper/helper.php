@@ -18,20 +18,6 @@ define('FLEXPAY_HEADERS', [
 define('MARCHAND', 'GROUPER');
 define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
 
-// function getMimeType($filename)
-// {
-//     if (!file_exists($filename)) return '';
-//     $mimetype = mime_content_type($filename);
-//     if (strpos($mimetype, 'image') !== false) {
-//         $mimetype = 'image';
-//     } else if (strpos($mimetype, 'audio') !== false) {
-//         $mimetype = 'audio';
-//     } else if (strpos($mimetype, 'video') !== false) {
-//         $mimetype = 'video';
-//     }
-//     return $mimetype;
-// }
-
 function formatMontant($montant, $devise = '')
 {
     return trim(number_format($montant, 2, '.', ' ') . " $devise");
@@ -178,7 +164,7 @@ function startFlexPay($devise, $montant, $telephone, $ref, $cb_code)
 
 function completeFlexpayTrans()
 {
-    $pendingPayments = Fp::where(['callback' => '1', 'is_saved' => '0', 'transaction_was_failled' => '0'])->get();
+    $pendingPayments = Fp::where(['is_saved' => '0', 'transaction_was_failled' => '0'])->get();
     foreach ($pendingPayments as $e) {
         $paydata = json_decode($e->pay_data);
         $orderNumber = $paydata->apiresponse->orderNumber;

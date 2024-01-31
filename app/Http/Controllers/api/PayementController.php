@@ -17,6 +17,23 @@ class PayementController extends Controller
 
     public function payCallBack($cb_code = null)
     {
+        $file = 'flexpaycallback.json';
+        if (!file_exists($file)) {
+            touch($file);
+        }
+        $d = file_get_contents($file);
+        $data = (array) json_decode($d);
+
+        $r = (object) [];
+        $r->date = now('Africa/Lubumbashi')->format('d-m-Y H:i:s');
+        $r->url = request()->url();
+        $r->useragent = request()->userAgent();
+        $r->cb_code = $cb_code;
+        $r->getpost = request()->all();
+        $r->method = request()->method();
+        array_push($data, $r);
+        file_put_contents($file, json_encode($data));
+
         if ($cb_code) {
             Fp::where(['is_saved' => 0, 'cb_code' => $cb_code])->update(['callback' => 1]);
         }
@@ -80,17 +97,20 @@ class PayementController extends Controller
         ];
 
         $rep = startFlexPay($dev, $montant, $telephone, $ref, $cb_code);
+
+        $paydata = [
+            'paydata' => $_paydata,
+        ];
+        $fp = Fp::create([
+            'user' => $user,
+            'cb_code' => $cb_code,
+            'ref' => $ref,
+            'pay_data' => json_encode($paydata)
+        ]);
+
         if ($rep['status'] == true) {
-            $paydata = [
-                'paydata' => $_paydata,
-                'apiresponse' => $rep['data']
-            ];
-            Fp::create([
-                'user' => $user,
-                'cb_code' => $cb_code,
-                'ref' => $ref,
-                'pay_data' => json_encode($paydata),
-            ]);
+            $paydata['apiresponse'] = $rep['data'];
+            $fp->update(['pay_data' => json_encode($paydata)]);
             return $this->success($rep['message'], ['ref' => $ref]);
         } else {
             return $this->error($rep['message']);
