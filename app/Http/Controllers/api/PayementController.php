@@ -191,11 +191,8 @@ class PayementController extends Controller
             'telephone' => ['required', 'regex:/(\+24390|\+24399|\+24397|\+24398|\+24380|\+24381|\+24382|\+24383|\+24384|\+24385|\+24389)[0-9]{7}/']
         ];
 
-        // $rules['myref'] = 'required';
-
         if (!in_array($_source, ['E-PAY', 'PAY-LINK'])) {
             $_source = 'API';
-            // $rules['ref'] = 'required';
         }
 
         $validator = Validator::make(request()->all(), $rules, ['myref.unique' => "Invalid reference (myref), please retry."]);
