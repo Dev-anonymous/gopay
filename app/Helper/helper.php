@@ -164,7 +164,6 @@ function startFlexPay($devise, $montant, $telephone, $ref, $cb_code)
 
 function completeFlexpayTrans()
 {
-    return;
     $pendingPayments = Fp::where(['is_saved' => '0', 'transaction_was_failled' => '0'])->get();
     foreach ($pendingPayments as $e) {
         $paydata = json_decode($e->pay_data);
