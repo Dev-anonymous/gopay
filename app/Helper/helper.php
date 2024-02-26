@@ -167,14 +167,18 @@ function completeFlexpayTrans()
     $pendingPayments = Fp::where(['is_saved' => '0', 'transaction_was_failled' => '0'])->get();
     foreach ($pendingPayments as $e) {
         $paydata = json_decode($e->pay_data);
-        $orderNumber = $paydata->apiresponse->orderNumber;
-        $t = transaction_was_success($orderNumber);
-        if ($t === true) {
-            saveData($paydata, $e);
-        } else {
-            if ($t === false) {
-                $e->update(['transaction_was_failled' => 1]);
+        try {
+            $orderNumber = $paydata->apiresponse->orderNumber;
+            $t = transaction_was_success($orderNumber);
+            if ($t === true) {
+                saveData($paydata, $e);
+            } else {
+                if ($t === false) {
+                    $e->update(['transaction_was_failled' => 1]);
+                }
             }
+        } catch (\Throwable $th) {
+            # $paydata->apiresponse is null, flexpay init was not responded
         }
     }
 }

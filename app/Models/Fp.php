@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $user
  * @property string $cb_code
  * @property string $ref
+ * @property string|null $myref
  * @property string $pay_data
  * @property int $is_saved
  * @property int $callback
@@ -43,6 +44,7 @@ class Fp extends Model
 		'user',
 		'cb_code',
 		'ref',
+		'myref',
 		'pay_data',
 		'is_saved',
 		'callback',

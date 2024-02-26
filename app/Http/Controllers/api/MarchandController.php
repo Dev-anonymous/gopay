@@ -324,15 +324,17 @@ class MarchandController extends Controller
         $user = auth()->user();
         $key = $user->apikeys()->where('type', 'production')->first()->key;
 
+        $myref = 'myref' . time() . rand(10000, 90000);
 
         $params = [
             '_source' => 'E-PAY',
             'devise' => $devise,
             'amount' => $montant,
-            'telephone' => $telephone
+            'telephone' => $telephone,
+            'myref' => $myref,
         ];
 
-        $request = Request::create(route('pay.init'), 'POST', $params);
+        $request = Request::create(route('pay.initV2'), 'POST', $params);
         $request->headers->set('x-api-key', $key);
         $req = app()->handle($request);
         if ($req->status() != 200) {
@@ -346,11 +348,11 @@ class MarchandController extends Controller
 
     public function pay_check()
     {
-        $ref = request()->ref;
+        $myref = request()->myref;
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $key = $user->apikeys()->where('type', 'production')->first()->key;
-        $request = Request::create(route('pay.check', $ref));
+        $request = Request::create(route('pay.checkV2', $myref));
         $request->headers->set('x-api-key', $key);
         $req = app()->handle($request);
         if ($req->status() != 200) {

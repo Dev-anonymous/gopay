@@ -87,7 +87,7 @@
                             <h6 class="text-danger font-italic font-weight-bold">Etape 1 : Initier un paiement</h6>
                             <blockquote class="blockquote bg-grey">
                                 <div class="small mb-2">
-                                    <small>/ POST : {{ route('pay.init') }} <br>
+                                    <small>/ POST : {{ route('pay.initV2') }} <br>
                                         Header : x-api-key:[API_KEY] <br>
                                         params : devise [CDF|USD], montant, telephone [numéro telephone du client qui initie
                                         le paiement]
@@ -111,7 +111,7 @@
                             <h6 class="text-danger font-italic font-weight-bold">Etape 2 : Vérifier un paiement</h6>
                             <blockquote class="blockquote bg-grey">
                                 <div class="small mb-2">
-                                    <small>/ POST : {{ route('pay.check') }}/[REF] <br>
+                                    <small>/ POST : {{ route('pay.checkV2') }}/[REF] <br>
                                         Header : x-api-key:[API_KEY]
                                     </small>
                                 </div>
@@ -137,7 +137,7 @@
                         </div>
                         <div class="card-footer">
                             <p>Télécharger le projet laravel avec modèle d'intégration de l'API. </p>
-                            <a href="{{ asset('GoPAY_DEMO_INTEGRATION.zip') }}" class="btn btn-sm btn-dark mb-5">
+                            <a href="{{ asset('GoPAY_v2.zip') }}" class="btn btn-sm btn-dark mb-5">
                                 <i class="fa fa-download">Télécharger</i>
                             </a>
 

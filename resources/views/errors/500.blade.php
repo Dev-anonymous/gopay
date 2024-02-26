@@ -1707,7 +1707,7 @@
             <div class="title">
                 <div class="number">500</div>
             </div>
-            <div class="subtitle">Oops! une erreur serveur <br> s'est produite !</div>
+            <div class="subtitle">Oops! quelque chose <br> s'est produite !</div>
             <div class="">
                 <button onclick="location.assign('{{ route('app.login') }}')">Accueil</button>
                 <button onclick="history.back()">Retour</button>

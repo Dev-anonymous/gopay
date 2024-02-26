@@ -1708,7 +1708,7 @@
                 </div>
                 <div class="number">3</div>
             </div>
-            <div class="subtitle">Oops! vous n'etes pas autorisé <br> à acceder à cette !</div>
+            <div class="subtitle">Oops! vous n'etes pas autorisé <br> à acceder à cette réssource !</div>
             <div class="">
                 <button onclick="location.assign('{{ route('app.login') }}')">Accueil</button>
                 <button onclick="history.back()">Retour</button>

@@ -108,7 +108,7 @@
                                 <div class="alert alert-danger text-center">
                                     <b>
                                         <i class="fa fa-exclamation-triangle"></i>
-                                        LIEN DE PAIEMENT INVALID
+                                        LIEN DE PAIEMENT INVALIDE
                                     </b>
                                 </div>
                             @endif
@@ -173,7 +173,7 @@
                         $.ajax({
                             url: '{{ route('web.pay.check') }}',
                             data: {
-                                ref: REF,
+                                myref: REF,
                                 link: '{{ $link->id }}'
                             },
                             success: function(res) {
@@ -286,7 +286,7 @@
                                     'btn-danger');
 
                                 clearInterval(interv);
-                                REF = res.data.ref;
+                                REF = res.data.myref;
                                 interv = setInterval(callback, 3000);
                                 $('#btnclose').hide();
                                 $('#btncancel').show();
@@ -315,7 +315,7 @@
             @else
                 setTimeout(() => {
                     Swal.fire(
-                        'LIEN DE PAIEMENT INVALID', "Votre lien de paiement n'est pas valide !",
+                        'LIEN DE PAIEMENT INVALIDE', "Votre lien de paiement n'est pas valide !",
                         'error'
                     )
                 }, 1000);

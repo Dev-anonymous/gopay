@@ -70,6 +70,11 @@ Route::middleware('paymentProd.mdwr')->group(function () {
         Route::post('/payment/init', [PayementController::class, 'payinit'])->name('pay.init');
         Route::get('/payment/check/{ref?}', [PayementController::class, 'paycheck'])->name('pay.check');
     });
+
+    Route::prefix('v2')->group(function () {
+        Route::post('/payment/init', [PayementController::class, 'payinitV2'])->name('pay.initV2');
+        Route::get('/payment/check/{myref?}', [PayementController::class, 'paycheckV2'])->name('pay.checkV2');
+    });
 });
 
 Route::post('/web/payment/init', [PayementController::class, 'web_pay_init'])->name('web.pay.init');

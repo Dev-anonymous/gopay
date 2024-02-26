@@ -74,7 +74,7 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-seconday btn-sm" id="btnclose"
                             data-dismiss="modal">Fermer</button>
-                        <button type="button" class="btn btn-primary btn-sm" id="btncancel"
+                        <button type="button" class="btn btn-seconday btn-sm" id="btncancel"
                             style="display: none">Annuler</button>
                         <button type="submit" class="btn btn-dark btn-sm">
                             <i class="fa fa-money-bill-transfer"></i>
@@ -105,7 +105,7 @@
                         url: '{{ route('marchand.api.marchand_pay_check') }}',
                         type: 'POST',
                         data: {
-                            ref: REF
+                            myref: REF
                         },
                         success: function(res) {
                             var trans = res.transaction;
@@ -212,7 +212,7 @@
                                 'btn-danger');
 
                             clearInterval(interv);
-                            REF = res.data.ref;
+                            REF = res.data.myref;
                             interv = setInterval(callback, 3000);
                             $('#btnclose').hide();
                             $('#btncancel').show();
