@@ -263,9 +263,13 @@ function total_cashout()
     return order_dev($t);
 }
 
-function tot_solde_marchand()
+function tot_solde_marchand($idcompte = null)
 {
-    $tot = Solde::selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
+    if ($idcompte) {
+        $tot = Solde::where('compte_id', $idcompte)->selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
+    } else {
+        $tot = Solde::selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
+    }
     $comm = User::where('user_role', 'marchand')->sum('commission');
 
     $tot = $tot->get()->pluck('montant', 'devise.devise')->all();
@@ -276,8 +280,10 @@ function tot_solde_marchand()
     @$t['CDF'] ?: ($t['CDF'] = 0.0);
     @$t['USD'] ?: ($t['USD'] = 0.0);
 
-    $t['CDF'] -= $t['CDF'] * $comm;
-    $t['USD'] -= $t['USD'] * $comm;
+    if (!$idcompte) {
+        $t['CDF'] -= $t['CDF'] * $comm;
+        $t['USD'] -= $t['USD'] * $comm;
+    }
 
     return order_dev($t);
 }
