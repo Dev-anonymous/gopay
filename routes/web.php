@@ -5,7 +5,9 @@ use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\PayementController;
 use App\Http\Controllers\AppController;
 use App\Http\Controllers\MarchandWebController;
+use App\Models\Apikey;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/payment-callback/{cb_code?}', [PayementController::class, 'payCallBack'])->name('payment.callback.web');
@@ -37,7 +39,21 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::get('integration', [MarchandWebController::class, 'integration'])->name('marchand.web.integration');
             Route::get('account', [MarchandWebController::class, 'compte'])->name('marchand.web.compte');
             Route::get('pay-link', [MarchandWebController::class, 'lien_pay'])->name('marchand.web.lien_pay');
+            Route::get('payout', [MarchandWebController::class, 'payout'])->name('marchand.web.payout');
         });
     });
 });
 
+Route::get('recovery', [AppController::class, 'recoveryview'])->name('recoveryview');
+Route::post('/recovery/check', [AppController::class, 'recovery'])->name('api.recovery');
+Route::post('/recovery/complete', [AppController::class, 'complete'])->name('api.recovery-complete');
+
+Route::get('a', function () {
+    $user =  User::where('user_role', 'marchand')->get();
+    foreach ($user as $u) {
+        $a = $u->apikeys()->where('type', 'payout')->first();
+        if (!$a) {
+            Apikey::create(['users_id' => $u->id, 'key' => encode(time() * rand(100, 900)), 'type' => 'payout']);
+        }
+    }
+});

@@ -4,8 +4,10 @@ use App\Http\Controllers\api\AdminController;
 use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\MarchandController;
 use App\Http\Controllers\api\PayementController;
+use App\Http\Controllers\api\PayoutController;
 use App\Http\Controllers\api\RecoveryController;
 use App\Http\Controllers\api\UserController;
+use App\Http\Controllers\AppController;
 use Illuminate\Support\Facades\Route;
 
 #==========   USER AUTH  =======#
@@ -33,6 +35,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/pay-link', [MarchandController::class, 'pay_link']);
     Route::delete('/pay-link/{id}', [MarchandController::class, 'pay_link_del']);
     Route::post('/pin-check', [MarchandController::class, 'pin_check']);
+    Route::post('/revoque-payout', [MarchandController::class, 'revoquepayout'])->name('marchand.api.revoquepayout');
+    Route::post('/apikey-status', [MarchandController::class, 'apikey_status'])->name('marchand.api.apikeys');
 
 
     #==========   User & Key =======#
@@ -51,6 +55,19 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::get('/admin/envoi-fonds', [AdminController::class, 'envoi_fonds'])->name('admin.api.cashout');
         Route::post('/admin/envoi-fonds', [AdminController::class, 'maj_envoi_fonds']);
         Route::post('/admin/apikey-status', [AdminController::class, 'apikey_status'])->name('admin.api.apikeys');
+    });
+});
+
+########### MERCHAND PAYOUT API
+Route::middleware('payout.mdwr')->group(function () {
+    Route::prefix('payout')->group(function () {
+        Route::prefix('v1')->group(function () {
+            Route::get('balance', [PayoutController::class, 'balance'])->name('payout.balanceV1');
+            Route::get('transfert', [PayoutController::class, 'gettransfert'])->name('payout.transfertV1');
+            Route::post('transfert', [PayoutController::class, 'newtransfert']);
+            Route::get('transfert-status/{trans_id}', [PayoutController::class, 'statustransfert'])->name('payout.statustransfertV1');
+            Route::delete('transfert/{trans_id}', [PayoutController::class, 'deltransfert'])->name('payout.deltransfertV1');
+        });
     });
 });
 

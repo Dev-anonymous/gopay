@@ -30,13 +30,13 @@
                                 <table class="table table-hover font-weight-bold table-striped">
                                     <thead class="table-dark">
                                         <tr>
-                                            <th colspan="3">VOS CLES API</th>
+                                            <th colspan="3">CLEF API</th>
                                         </tr>
                                     </thead>
                                     @php
                                         $apikeys = auth()
                                             ->user()
-                                            ->apikeys()
+                                            ->apikeys()->where('type', 'production')
                                             ->get();
                                     @endphp
                                     <tbody>
@@ -71,7 +71,7 @@
                     <div class="card p-3 mt-3">
                         <div class="alert alert-warning w-100 mb-0">
                             <b>
-                                <i class="fa fa-info-circle"></i> La document de l'API est en cours de redaction.
+                                <i class="fa fa-info-circle"></i> La documentation de l'API est en cours de redaction.
                             </b>
                         </div>
                     </div>

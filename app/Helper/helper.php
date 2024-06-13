@@ -350,3 +350,17 @@ function commission(User $user = null)
     }
     return $com;
 }
+
+function code($lengh = 6)
+{
+    $c = '';
+    while (1) {
+        if ($lengh != 0) {
+            $lengh--;
+            $c .= rand(1, 9);
+        } else {
+            break;
+        }
+    }
+    return $c;
+}

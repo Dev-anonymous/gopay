@@ -56,4 +56,9 @@ class MarchandWebController extends Controller
     {
         return view('marchand.lien_pay');
     }
+    public function payout()
+    {
+
+        return view('marchand.payout');
+    }
 }

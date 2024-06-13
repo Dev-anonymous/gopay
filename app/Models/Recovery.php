@@ -6,7 +6,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -15,7 +14,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $id
  * @property int $users_id
  * @property string|null $code
- * @property Carbon|null $date
+ * @property int|null $date
+ * @property int|null $tentative
  * 
  * @property User $user
  *
@@ -27,17 +27,16 @@ class Recovery extends Model
 	public $timestamps = false;
 
 	protected $casts = [
-		'users_id' => 'int'
-	];
-
-	protected $dates = [
-		'date'
+		'users_id' => 'int',
+		'date' => 'int',
+		'tentative' => 'int'
 	];
 
 	protected $fillable = [
 		'users_id',
 		'code',
-		'date'
+		'date',
+		'tentative'
 	];
 
 	public function user()

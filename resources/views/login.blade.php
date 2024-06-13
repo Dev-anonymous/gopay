@@ -35,7 +35,8 @@
                                     </div>
                                 </div>
                                 <div class="col text-center">
-                                    <a href="#!" class="text-white"><i>Mot de passe oublié</i></a>
+                                    <a href="{{ route('recoveryview') }}" mdpforget class="text-white"><i>Mot de passe
+                                            oublié</i></a>
                                 </div>
                             </div>
                             <button type="submit" class="btn btn-dark btn-block">

@@ -6,6 +6,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $key
  * @property string $type
  * @property int|null $active
+ * @property Carbon|null $generated_on
  * 
  * @property User $user
  *
@@ -31,11 +33,16 @@ class Apikey extends Model
 		'active' => 'int'
 	];
 
+	protected $dates = [
+		'generated_on'
+	];
+
 	protected $fillable = [
 		'users_id',
 		'key',
 		'type',
-		'active'
+		'active',
+		'generated_on'
 	];
 
 	public function user()

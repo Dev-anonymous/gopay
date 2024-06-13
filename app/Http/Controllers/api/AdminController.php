@@ -130,8 +130,9 @@ class AdminController extends Controller
                 Solde::create(['montant' => 0, 'devise_id' => $d->id, 'compte_id' => $cmpt->id]);
             }
 
-            Apikey::create(['users_id' => $user->id, 'key' => encode(time() * rand(2, 100)), 'type' => 'production']);
-            Apikey::create(['users_id' => $user->id, 'key' => encode(time() * rand(2, 100)), 'type' => 'test']);
+            Apikey::create(['users_id' => $user->id, 'key' => encode(time() * rand(100, 900)), 'type' => 'production']);
+            Apikey::create(['users_id' => $user->id, 'key' => encode(time() * rand(100, 900)), 'type' => 'payout']);
+            // Apikey::create(['users_id' => $user->id, 'key' => encode(time() * rand(2, 100)), 'type' => 'test']);
 
             DB::commit();
 
@@ -307,7 +308,7 @@ class AdminController extends Controller
         if ($validator->fails()) {
             return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
         }
-        
+
         $data = $validator->validated();
         unset($data['id']);
         $k =  Apikey::where('id', request()->id)->first();

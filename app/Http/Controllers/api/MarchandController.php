@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Apikey;
 use App\Models\DemandeTransfert;
 use App\Models\Devise;
 use App\Models\LienPaie;
@@ -520,4 +521,46 @@ class MarchandController extends Controller
 
         return $this->success('Pin valide');
     }
+
+    function revoquepayout()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $key =  encode(time() * rand(100, 900));
+        Apikey::where(['users_id' => $user->id, 'type' => 'payout'])->update(['generated_on' => now('Africa/Lubumbashi'), 'key' => $key]);
+        return $this->success('Une nouvelle cléf payout a été générée.', compact('key'));
+    }
+
+    public function apikey_status()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'id' => 'required|exists:apikey',
+                'active' => 'required|in:1,0',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+
+        $data = $validator->validated();
+        unset($data['id']);
+        $k =  Apikey::where('id', request()->id)->first();
+        abort_if($k->users_id != $user->id, 403);
+        $k->update($data);
+
+        if (request()->active == 1) {
+            $m = "Votre clé API($k->type) a été activée.";
+        } else {
+            $m = "Votre clé API($k->type) a été bloquée.";
+        }
+        return $this->success($m);
+    }
+
+    
 }
