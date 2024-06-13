@@ -223,6 +223,7 @@ class AdminController extends Controller
             $a->status = $e->status;
             $a->note_validation = $e->note_validation;
             $a->date = $e->date->format('d-m-Y H:i:s');
+            $a->date_denvoi = $e->date_denvoi->format('d-m-Y H:i:s');
             $a->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
             array_push($tab, $a);
         }

@@ -261,7 +261,12 @@ class MarchandController extends Controller
                     return formatMontant($data->montant, $data->solde->devise->devise);
                 })->editColumn('date', function ($data) {
                     return $data->date?->format('d-m-Y H:i:s');
+                })->editColumn('date_denvoi', function ($data) {
+                    return  $data->date_denvoi?->format('d-m-Y H:i:s');
                 })->rawColumns(['status']);
+
+
+
 
             return $dtable->make(true);
         }
@@ -277,6 +282,7 @@ class MarchandController extends Controller
             $o->status = $e->status;
             $o->note_validation = $e->note_validation;
             $o->date = $e->date->format('d-m-Y H:i:s');
+            $o->date_denvoi = $e->date_denvoi->format('d-m-Y H:i:s');
             $o->date_validation = $e->date_validation?->format('d-m-Y H:i:s');
             array_push($tab, $o);
         }
@@ -562,5 +568,5 @@ class MarchandController extends Controller
         return $this->success($m);
     }
 
-    
+
 }

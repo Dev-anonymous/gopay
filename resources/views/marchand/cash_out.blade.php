@@ -28,6 +28,7 @@
                                 <th>TRANS. ID</th>
                                 <th class="text-center">MONTANT</th>
                                 <th class="text-center">ENVOI AU</th>
+                                <th class="text-center">DATE D'ENVOI</th>
                                 <th class="text-center">STATUS</th>
                                 <th class="text-center">NOTE VALIDATION</th>
                                 <th class="text-right">DATE</th>
@@ -196,6 +197,11 @@
                     {
                         data: 'au_numero',
                         name: 'au_numero',
+                        class: 'text-center'
+                    },
+                    {
+                        data: 'date_denvoi',
+                        name: 'date_denvoi',
                         class: 'text-center'
                     },
                     {

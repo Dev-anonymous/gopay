@@ -28,6 +28,7 @@
                                 <th class="text-nowrap">NUMERO COMPTE</th>
                                 <th>SOLDE</th>
                                 <th class="text-center">ENVOI AU</th>
+                                <th class="text-center">DATE D'ENVOI</th>
                                 <th class="text-center">MONTANT</th>
                                 <th class="text-center">STATUS</th>
                                 <th class="text-nowrap">NOTE VALIDATION</th>
@@ -136,6 +137,7 @@
                                     <td>${e.numero_compte}</td>
                                     <td class="text-nowrap">${e.solde.join('<br>')}</td>
                                     <td class="text-nowrap text-center">${e.au_numero}</td>
+                                    <td class="text-nowrap text-center">${e.date_denvoi}</td>
                                     <td class="text-nowrap text-center">${e.montant}</td>
                                     <td class="text-center text-nowrap">
                                         ${status} <br>
