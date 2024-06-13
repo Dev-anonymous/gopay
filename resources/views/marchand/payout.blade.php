@@ -178,7 +178,8 @@ echo $response;
                                         # Permet d'envoyer l'argent à une liste de compte mobile money <br>
                                         Header : x-api-key:[PAYOUT_API_KEY] <br>
                                         params : devise => [CDF|USD], montant => (minimum 500 CDF ou 0.5 USD), telephone[]
-                                        => (un tableau de numéros auquels envoyé l'argent. ex. [0991234567,0811234567,0851234567] )
+                                        => (un tableau de numéros auquels envoyé l'argent. ex.
+                                        [0991234567,0811234567,0851234567] )
                                     </small>
                                 </div>
                                 <small>
@@ -406,25 +407,25 @@ echo $response;
                             "date_validation": "17-06-2024 11:56:23"
                         },
                     ],
-                    "first_page_url": "http://127.0.0.1:8000/api/payout/v1/transfert?page=1",
+                    "first_page_url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
                     "from": 16,
                     "last_page": 3,
-                    "last_page_url": "http://127.0.0.1:8000/api/payout/v1/transfert?page=3",
+                    "last_page_url": "{{ route('payout.transfertV1', ['page' => 3]) }}",
                     "links": [{
-                            "url": "http://127.0.0.1:8000/api/payout/v1/transfert?page=1",
+                            "url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
                             "label": "&laquo; Previous",
                             "active": true
                         },
                         {
-                            "url": "http://127.0.0.1:8000/api/payout/v1/transfert?page=1",
+                            "url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
                             "label": "1",
                             "active": false
                         },
                     ],
-                    "next_page_url": "http://127.0.0.1:8000/api/payout/v1/transfert?page=3",
-                    "path": "http://127.0.0.1:8000/api/payout/v1/transfert",
+                    "next_page_url": "{{ route('payout.transfertV1', ['page' => 3]) }}",
+                    "path": "{{ route('payout.transfertV1') }}",
                     "per_page": 15,
-                    "prev_page_url": "http://127.0.0.1:8000/api/payout/v1/transfert?page=1",
+                    "prev_page_url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
                     "to": 30,
                     "total": 32
                 }
