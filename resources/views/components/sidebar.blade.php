@@ -122,18 +122,10 @@
                                 Intégration
                             </a>
                         </li>
-                    </ul>
-                </li>
-                <li class="sidenav-item">
-                    <a class="sidenav-link">
-                        <i class="fa-solid fa-money-bill-trend-up pr-3"></i>
-                        PayOut
-                    </a>
-                    <ul class="sidenav-collapse">
                         <li class="sidenav-item">
                             <a class="sidenav-link" link href="{{ route('marchand.web.payout') }}">
                                 <i class="fa-solid fa-cogs pr-1"></i>
-                                Clé API
+                                PayOut
                             </a>
                         </li>
                     </ul>
