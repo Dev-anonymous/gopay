@@ -68,12 +68,11 @@ class AuthController extends Controller
         ]);
     }
 
-    public function logout()
+    public function logout(Request $r)
     {
         if (Auth::check()) {
             /** @var \App\Models\User $user **/
             $user = auth()->user();
-            $user->tokens()->delete();
             Auth::guard('web')->logout();
         }
         return redirect(route('app.login'));
