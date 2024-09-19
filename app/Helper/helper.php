@@ -266,24 +266,34 @@ function total_cashout()
 function tot_solde_marchand($idcompte = null)
 {
     if ($idcompte) {
-        $tot = Solde::where('compte_id', $idcompte)->selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
+        $cdf = $usd = 0;
+        $cmpt = Compte::find($idcompte);
+        $solde = $cmpt->soldes()->selectRaw('*,sum(montant) as montant')->groupBy('devise_id')->get()->pluck('montant', 'devise.devise')->all();
+
+        $cdf0 = $solde['CDF'];
+        $usd0 = $solde['USD'];
+        $com = $cmpt->user->commission;
+
+        $cdf += $cdf0;
+        $usd += $usd0;
     } else {
-        $tot = Solde::selectRaw('*,sum(montant) as montant')->groupBy('devise_id');
-    }
-    $comm = User::where('user_role', 'marchand')->sum('commission');
+        $cdf = $usd = 0;
+        foreach (Compte::all() as $el) {
+            $solde = $el->soldes()->selectRaw('*,sum(montant) as montant')->groupBy('devise_id')->get()->pluck('montant', 'devise.devise')->all();
+            $cdf0 = $solde['CDF'];
+            $usd0 = $solde['USD'];
+            $com = $el->user->commission;
 
-    $tot = $tot->get()->pluck('montant', 'devise.devise')->all();
-    $t = [];
-    foreach ($tot as $k => $v) {
-        $t[$k] = $v;
-    }
-    @$t['CDF'] ?: ($t['CDF'] = 0.0);
-    @$t['USD'] ?: ($t['USD'] = 0.0);
+            $cdf0 -= $cdf0 * $com;
+            $usd0 -= $usd0 * $com;
 
-    if (!$idcompte) {
-        $t['CDF'] -= $t['CDF'] * $comm;
-        $t['USD'] -= $t['USD'] * $comm;
+            $cdf += $cdf0;
+            $usd += $usd0;
+        }
     }
+
+    $t['CDF'] = $cdf;
+    $t['USD'] = $usd;
 
     return order_dev($t);
 }
