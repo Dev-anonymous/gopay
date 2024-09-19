@@ -22,6 +22,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $callback
  * @property int $transaction_was_failled
  * @property Carbon $date
+ * @property string|null $notifyurl
+ * @property int|null $cannotify
+ * @property int|null $notifycount
+ * @property string|null $notifypayload
  *
  * @package App\Models
  */
@@ -33,7 +37,9 @@ class Fp extends Model
 	protected $casts = [
 		'is_saved' => 'int',
 		'callback' => 'int',
-		'transaction_was_failled' => 'int'
+		'transaction_was_failled' => 'int',
+		'cannotify' => 'int',
+		'notifycount' => 'int'
 	];
 
 	protected $dates = [
@@ -49,6 +55,10 @@ class Fp extends Model
 		'is_saved',
 		'callback',
 		'transaction_was_failled',
-		'date'
+		'date',
+		'notifyurl',
+		'cannotify',
+		'notifycount',
+		'notifypayload'
 	];
 }

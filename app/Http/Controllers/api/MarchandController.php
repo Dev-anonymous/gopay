@@ -213,7 +213,8 @@ class MarchandController extends Controller
         DB::beginTransaction();
         DemandeTransfert::create([
             'solde_id' => $solde->id,
-            'au_numero' => $telephone, 'montant' => $montant,
+            'au_numero' => $telephone,
+            'montant' => $montant,
             'date' => now('Africa/Lubumbashi'),
             'trans_id' => trans_id('CASH.OUT', $user)
         ]);
@@ -567,6 +568,4 @@ class MarchandController extends Controller
         }
         return $this->success($m);
     }
-
-
 }
