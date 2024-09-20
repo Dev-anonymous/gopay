@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 define('FLEXPAY_HEADERS', [
     "Content-Type: application/json",
-    "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJcL2xvZ2luIiwicm9sZXMiOlsiTUVSQ0hBTlQiXSwiZXhwIjoxNzI2NzM2NzQ4LCJzdWIiOiI2ZGQzMWVmOTNkNzQ2ZmQ2NmU5ZjZjZDRhMWNjM2M2YiJ9.A5wcsvDM1wi_xdsWJQOM18IZaBPvyTPRAQFgvi0WIlg"
+    "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJcL2xvZ2luIiwicm9sZXMiOlsiTUVSQ0hBTlQiXSwiZXhwIjoxNzg5ODk4NjY2LCJzdWIiOiIwMzA3MmRkZDE5ZDM5ZDIzMmQyMDZjZmM0OWI2NmNlYyJ9.K3Z_lajU4fOwRQUxGWQyBUb_oHFHgRwshw5VOIy8O8I"
 ]);
 define('MARCHAND', 'GROUPER');
 define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
