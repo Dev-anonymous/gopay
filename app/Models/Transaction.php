@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id
  * @property int $compte_id
+ * @property int|null $users_id
  * @property int|null $operateur_id
  * @property int $devise_id
  * @property float|null $montant
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property Compte $compte
  * @property Devise $devise
  * @property Operateur|null $operateur
+ * @property User|null $user
  *
  * @package App\Models
  */
@@ -37,6 +39,7 @@ class Transaction extends Model
 
     protected $casts = [
         'compte_id' => 'int',
+        'users_id' => 'int',
         'operateur_id' => 'int',
         'devise_id' => 'int',
         'montant' => 'float'
@@ -48,6 +51,7 @@ class Transaction extends Model
 
     protected $fillable = [
         'compte_id',
+        'users_id',
         'operateur_id',
         'devise_id',
         'montant',
@@ -72,5 +76,10 @@ class Transaction extends Model
     public function operateur()
     {
         return $this->belongsTo(Operateur::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'users_id');
     }
 }

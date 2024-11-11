@@ -369,98 +369,94 @@ echo $response;
     <script>
         $(function() {
 
-            // try {
+            try {
+                $('#jsonbalance').jsonViewer({
+                    "success": true,
+                    "message": "BALANCE",
+                    "data": {
+                        "CDF": "250000.63",
+                        "USD": "3600.12"
+                    }
+                });
+                $('#jsongettrans').jsonViewer({
+                    "success": true,
+                    "message": "DEMANDES DE TRANSFERT",
+                    "data": {
+                        "current_page": 1,
+                        "data": [{
+                                "id": 28,
+                                "trans_id": "CASH.OUT-0017.12319.72864",
+                                "montant": "15 000.00 CDF",
+                                "au_numero": "+24399xxxx",
+                                "status": "TRAITÉE",
+                                "note_validation": "DEMAMDE TRAITEE AVEC SUCCESS : [TRAITÉE]",
+                                "date": "13-06-2024 11:56:23",
+                                "date_denvoi": "13-06-2024 11:56:23",
+                                "date_validation": "13-07-2024 11:56:23"
+                            },
+                            {
+                                "id": 27,
+                                "trans_id": "CASH.OUT-0016.57179.47873",
+                                "montant": "20 000.00 CDF",
+                                "au_numero": "+24399xxxx",
+                                "status": "REJETÉE",
+                                "note_validation": "DEMAMDE TRAITEE AVEC SUCCESS : [REJETÉE]",
+                                "date": "14-06-2024 01:56:14",
+                                "date_denvoi": "17-06-2024 11:56:23",
+                                "date_validation": "17-06-2024 11:56:23"
+                            },
+                        ],
+                        "first_page_url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
+                        "from": 16,
+                        "last_page": 3,
+                        "last_page_url": "{{ route('payout.transfertV1', ['page' => 3]) }}",
+                        "links": [{
+                                "url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
+                                "label": "&laquo; Previous",
+                                "active": true
+                            },
+                            {
+                                "url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
+                                "label": "1",
+                                "active": false
+                            },
+                        ],
+                        "next_page_url": "{{ route('payout.transfertV1', ['page' => 3]) }}",
+                        "path": "{{ route('payout.transfertV1') }}",
+                        "per_page": 15,
+                        "prev_page_url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
+                        "to": 30,
+                        "total": 32
+                    }
+                });
 
-            $('#jsonbalance').jsonViewer({
-                "success": true,
-                "message": "BALANCE",
-                "data": {
-                    "CDF": "250000.63",
-                    "USD": "3600.12"
-                }
-            });
-            $('#jsongettrans').jsonViewer({
-                "success": true,
-                "message": "DEMANDES DE TRANSFERT",
-                "data": {
-                    "current_page": 1,
-                    "data": [{
-                            "id": 28,
-                            "trans_id": "CASH.OUT-0017.12319.72864",
-                            "montant": "15 000.00 CDF",
-                            "au_numero": "+24399xxxx",
-                            "status": "TRAITÉE",
-                            "note_validation": "DEMAMDE TRAITEE AVEC SUCCESS : [TRAITÉE]",
-                            "date": "13-06-2024 11:56:23",
-                            "date_denvoi": "13-06-2024 11:56:23",
-                            "date_validation": "13-07-2024 11:56:23"
-                        },
-                        {
-                            "id": 27,
-                            "trans_id": "CASH.OUT-0016.57179.47873",
-                            "montant": "20 000.00 CDF",
-                            "au_numero": "+24399xxxx",
-                            "status": "REJETÉE",
-                            "note_validation": "DEMAMDE TRAITEE AVEC SUCCESS : [REJETÉE]",
-                            "date": "14-06-2024 01:56:14",
-                            "date_denvoi": "17-06-2024 11:56:23",
-                            "date_validation": "17-06-2024 11:56:23"
-                        },
-                    ],
-                    "first_page_url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
-                    "from": 16,
-                    "last_page": 3,
-                    "last_page_url": "{{ route('payout.transfertV1', ['page' => 3]) }}",
-                    "links": [{
-                            "url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
-                            "label": "&laquo; Previous",
-                            "active": true
-                        },
-                        {
-                            "url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
-                            "label": "1",
-                            "active": false
-                        },
-                    ],
-                    "next_page_url": "{{ route('payout.transfertV1', ['page' => 3]) }}",
-                    "path": "{{ route('payout.transfertV1') }}",
-                    "per_page": 15,
-                    "prev_page_url": "{{ route('payout.transfertV1', ['page' => 1]) }}",
-                    "to": 30,
-                    "total": 32
-                }
-            });
+                $('#jsonsendtrans').jsonViewer({
+                    "success": true,
+                    "message": "Votre transfert sera traité à la date : 2024/06/13 16:41. Merci.",
+                    "data": null
+                });
 
-            $('#jsonsendtrans').jsonViewer({
-                "success": true,
-                "message": "Votre transfert sera traité à la date : 2024/06/13 16:41. Merci.",
-                "data": null
-            });
-
-            $('#jsongettransstate').jsonViewer({
-                "success": true,
-                "message": "Transaction CASH.OUT-0001.66331.86179",
-                "data": {
-                    "id": 12,
-                    "trans_id": "CASH.OUT-0001.66331.86179",
-                    "montant": "5.00 USD",
-                    "au_numero": "+2433991234567",
-                    "status": "EN ATTENTE",
-                    "note_validation": null,
-                    "date": "13-08-2023 14:58:51",
-                    "date_denvoi": "13-06-2024 11:56:23",
-                    "date_validation": null
-                }
-            });
-            $('#jsontransdel').jsonViewer({
-                "success": true,
-                "message": "La transaction CASH.OUT-0001.66331.86179 a été supprimée.",
-                "data": null
-            });
-
-            // } catch (error) {
-
-            // }
+                $('#jsongettransstate').jsonViewer({
+                    "success": true,
+                    "message": "Transaction CASH.OUT-0001.66331.86179",
+                    "data": {
+                        "id": 12,
+                        "trans_id": "CASH.OUT-0001.66331.86179",
+                        "montant": "5.00 USD",
+                        "au_numero": "+2433991234567",
+                        "status": "EN ATTENTE",
+                        "note_validation": null,
+                        "date": "13-08-2023 14:58:51",
+                        "date_denvoi": "13-06-2024 11:56:23",
+                        "date_validation": null
+                    }
+                });
+                $('#jsontransdel').jsonViewer({
+                    "success": true,
+                    "message": "La transaction CASH.OUT-0001.66331.86179 a été supprimée.",
+                    "data": null
+                });
+            } catch (error) {}
 
             var a = $('[baction]').val().split('.')[1];
             if (a == 0) {

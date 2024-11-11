@@ -42,13 +42,11 @@ class MarchandWebController extends Controller
 
     public function compte()
     {
-
         return view('marchand.compte');
     }
 
     public function integration()
     {
-
         return view('marchand.integration');
     }
 
@@ -56,9 +54,14 @@ class MarchandWebController extends Controller
     {
         return view('marchand.lien_pay');
     }
+
+    public function users()
+    {
+        return view('marchand.users');
+    }
+
     public function payout()
     {
-
         return view('marchand.payout');
     }
 }

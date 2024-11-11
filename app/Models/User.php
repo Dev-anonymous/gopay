@@ -16,6 +16,7 @@ use Laravel\Sanctum\HasApiTokens;
  * Class User
  *
  * @property int $id
+ * @property int|null $users_id
  * @property string $name
  * @property string $email
  * @property Carbon|null $email_verified_at
@@ -31,9 +32,12 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $business_name
  * @property float $commission
  *
+ * @property User|null $user
  * @property Collection|Apikey[] $apikeys
  * @property Collection|Compte[] $comptes
  * @property Collection|Recovery[] $recoveries
+ * @property Collection|Transaction[] $transactions
+ * @property Collection|User[] $users
  *
  * @package App\Models
  */
@@ -44,6 +48,7 @@ class User extends Authenticatable
     protected $table = 'users';
 
     protected $casts = [
+        'users_id' => 'int',
         'commission' => 'float'
     ];
 
@@ -58,6 +63,7 @@ class User extends Authenticatable
     ];
 
     protected $fillable = [
+        'users_id',
         'name',
         'email',
         'email_verified_at',
@@ -72,6 +78,11 @@ class User extends Authenticatable
         'commission'
     ];
 
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'users_id');
+    }
+
     public function apikeys()
     {
         return $this->hasMany(Apikey::class, 'users_id');
@@ -85,5 +96,15 @@ class User extends Authenticatable
     public function recoveries()
     {
         return $this->hasMany(Recovery::class, 'users_id');
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class, 'users_id');
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class, 'users_id');
     }
 }

@@ -13,6 +13,7 @@ use App\Notifications\SendMoney;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 use Yajra\DataTables\Facades\DataTables;
@@ -567,5 +568,95 @@ class MarchandController extends Controller
             $m = "Votre clé API($k->type) a été bloquée.";
         }
         return $this->success($m);
+    }
+
+    function users()
+    {
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+
+        if (request()->has('datatable')) {
+            $data = User::where('users_id', $user->id);
+            $dtable = DataTables::of($data)
+                ->addIndexColumn()
+                ->addColumn('action', function ($data) {
+                    $d = json_encode($data);
+                    $action =
+                        <<<DATA
+                        <div class="d-flex justify-content-end">
+                            <button value='$d' class="btn btn-sm btn-light bedit mr-2" type="button">
+                            <i class="fa fa-edit"></i> Editer
+                            </button>
+                            <button delete class="btn btn-link dropdown-toggle mr-4 text-dark" type="button" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                            <i class='fa fa-trash'></i> Supprimer
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" id="$data->id" deletelink href="#">Confirmer</a>
+                            </div>
+                        </div>
+
+                    DATA;
+                    return $action;
+                });
+
+            return $dtable->make(true);
+        }
+    }
+
+    function saveuser()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'name' => 'required|string|regex:/^[\pL\s]+$/u|max:45',
+                'email' => 'required|email|max:45|unique:users',
+                'phone' => 'required|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
+                'password' => 'required|string|',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        $data = $validator->validate();
+        $data['name'] = ucfirst($data['name']);
+        $data['password'] = Hash::make($data['password']);
+        $data['user_role'] = 'agent';
+        $data['users_id'] = auth()->user()->id;
+        $user = User::create($data);
+        return $this->success("Le compte a été créé avec succès.");
+    }
+
+    function updateuser(User $user)
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'name' => 'required|string|regex:/^[\pL\s]+$/u|max:45',
+                'email' => 'required|email|max:45|unique:users,email,' . $user->id,
+                'phone' => 'required|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone,' . $user->id,
+                'password' => 'sometimes|',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error('Validation error', ['errors_msg' => $validator->errors()->all()]);
+        }
+
+        $data = $validator->validate();
+        if (request('password')) {
+            $data['password'] = Hash::make($data['password']);
+        }
+        $data['name'] = ucfirst($data['name']);
+        $user->update($data);
+        return $this->success("Le compte a été mis à jour.");
+    }
+
+    function deleteuser(User $user)
+    {
+        $user->delete();
+        return $this->success("La donnée a été supprimée.");
     }
 }

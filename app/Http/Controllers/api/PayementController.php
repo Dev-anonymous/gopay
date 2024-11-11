@@ -121,6 +121,8 @@ class PayementController extends Controller
 
     public function paycheck($ref = null)
     {
+        return $this->error("API v1 is no longer available since 01/04/2024. Please use API v2.");
+
         if (!$ref) {
             return $this->error('Ref ?');
         }
