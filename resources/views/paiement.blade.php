@@ -225,7 +225,7 @@
                                         CANSHOW = false;
                                         Swal.fire(
                                             'TRANSACTION ECHOUEE !',
-                                            "La transaction échouée, vous avez peut-être saisi un mauvais Pin. Merci de réessayer.",
+                                            "La transaction a échouée, vous avez peut-être saisi un mauvais pin ou votre solde est insuffisant. Merci de réessayer.",
                                             'error'
                                         )
                                     }
