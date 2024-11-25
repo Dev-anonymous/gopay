@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\AdminController;
 use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\api\DashAPIController;
 use App\Http\Controllers\api\MarchandController;
 use App\Http\Controllers\api\PayementController;
 use App\Http\Controllers\api\PayoutController;
@@ -21,6 +22,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/ping', function () {
         return now('Africa/Lubumbashi');
     })->name('ping');
+
+    Route::resource('dash', DashAPIController::class)->only(['index']);
+
     ########### SOLDE & TRANSFERT
     Route::prefix('marchant')->group(function () {
         Route::get('/solde/{devise?}', [MarchandController::class, 'solde'])->name('marchand.api.solde');
@@ -42,6 +46,9 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         Route::post('/users', [MarchandController::class, 'saveuser']);
         Route::put('/users/{user}', [MarchandController::class, 'updateuser']);
         Route::delete('/users/{user}', [MarchandController::class, 'deleteuser']);
+
+        Route::post('/exchange/willbe', [MarchandController::class, 'willbe'])->name('marchand.api.willbe');
+        Route::post('/exchange/exchange', [MarchandController::class, 'exchange'])->name('marchand.api.exchange');
     });
 
     #==========   User & Key =======#

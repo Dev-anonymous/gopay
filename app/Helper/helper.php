@@ -18,6 +18,9 @@ define('FLEXPAY_HEADERS', [
 define('MARCHAND', 'GROUPER');
 define('API_BASE', 'https://backend.flexpay.cd/api/rest/v1');
 
+define('TAUX_CHANGE', 1 / 100);
+
+
 function formatMontant($montant, $devise = '')
 {
     return trim(number_format($montant, 2, '.', ' ') . " $devise");

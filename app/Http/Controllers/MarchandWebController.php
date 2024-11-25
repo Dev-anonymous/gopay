@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DemandeTransfert;
+use App\Models\Taux;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -15,13 +16,11 @@ class MarchandWebController extends Controller
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $compte = $user->comptes()->first();
-        $solde = tot_solde_marchand($compte->id);
-        $trans = Transaction::where('compte_id', $compte->id)->count();
+        $years = Transaction::where('compte_id', $compte->id)->selectRaw('year(date) as year')->pluck('year')->all();
+        $years = array_unique($years);
+        $taux = Taux::first();
 
-        $idsol = $user->comptes()->first()->soldes()->pluck('id')->all();
-        $transfert =  DemandeTransfert::whereIn('solde_id', $idsol)->count();
-
-        return view('marchand.index', compact('solde', 'trans', 'transfert'));
+        return view('marchand.index', compact('years', 'taux'));
     }
 
     public function transaction()

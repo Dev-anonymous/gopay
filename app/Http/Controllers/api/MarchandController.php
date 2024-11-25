@@ -3,17 +3,22 @@
 namespace App\Http\Controllers\api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\AppMail;
 use App\Models\Apikey;
 use App\Models\DemandeTransfert;
 use App\Models\Devise;
 use App\Models\LienPaie;
+use App\Models\SoldeApp;
+use App\Models\Taux;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Notifications\SendMoney;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use stdClass;
 use Yajra\DataTables\Facades\DataTables;
@@ -658,5 +663,164 @@ class MarchandController extends Controller
     {
         $user->delete();
         return $this->success("La donnée a été supprimée.");
+    }
+
+    function willbe()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'devise' => 'required|in:CDF,USD',
+                'amount' => 'required|numeric|',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error(implode(' ', $validator->errors()->all()));
+        }
+
+        $dev = request('devise');
+        $amount = request('amount');
+
+        if ($dev == 'CDF' && $amount < 500) {
+            return $this->error("Le minimum de change en CDF est de 500 CDF");
+        } else if ($dev == 'USD' && $amount < 0.5) {
+            return $this->error("Le minimum de change en USD est de 0.5 USD");
+        }
+
+        $taux = Taux::first();
+        if (!$taux) {
+            Artisan::call('taux');
+            $taux = Taux::first();
+            if (!$taux) {
+                return $this->error("Oops ! le service d'échange n'est pas disponible pour le moment, veuillez réessayer.");
+            }
+        }
+
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $compte = $user->comptes()->first();
+        $dev = Devise::where('devise', $dev)->first();
+
+        $solde = $compte->soldes()->where(['devise_id' => $dev->id])->first();
+        $montant_solde = $solde->montant;
+
+        $comm = $amount * TAUX_CHANGE;
+        $m =  $amount + $comm;
+
+        if ($montant_solde < $m) {
+            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre opération d'échange $m {$solde->devise->devise} (+" . (TAUX_CHANGE * 100) . "%) ne peut etre traité pour le moment.", 200);
+        }
+
+        if ($dev->devise == 'CDF') { // cdf to usd
+            $eval = $amount * $taux->cdf_usd;
+            $to = 'USD';
+        } else if ($dev->devise == 'USD') {
+            $eval = $amount * $taux->usd_cdf;
+            $to = 'CDF';
+        } else {
+            die;
+        }
+        $eval = formatMontant($eval, $to);
+        $m = "Vous allez recevoir $eval dans votre compte $to";
+        return $this->success($m);
+    }
+
+    function exchange()
+    {
+        $validator = Validator::make(
+            request()->all(),
+            [
+                'devise' => 'required|in:CDF,USD',
+                'amount' => 'required|numeric|',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return $this->error(implode(' ', $validator->errors()->all()));
+        }
+
+        $dev = request('devise');
+        $amount = request('amount');
+
+        if ($dev == 'CDF' && $amount < 500) {
+            return $this->error("Le minimum de change en CDF est de 500 CDF");
+        } else if ($dev == 'USD' && $amount < 0.5) {
+            return $this->error("Le minimum de change en USD est de 0.5 USD");
+        }
+
+        $taux = Taux::first();
+        if (!$taux) {
+            Artisan::call('taux');
+            $taux = Taux::first();
+            if (!$taux) {
+                return $this->error("Oops ! le service d'échange n'est pas disponible pour le moment, veuillez réessayer.");
+            }
+        }
+
+        /** @var \App\Models\User $user **/
+        $user = auth()->user();
+        $compte = $user->comptes()->first();
+        $dev = Devise::where('devise', $dev)->first();
+
+        $solde = $compte->soldes()->where(['devise_id' => $dev->id])->first();
+        $montant_solde = $solde->montant;
+
+        $comm = $amount * TAUX_CHANGE;
+        $m =  $amount + $comm;
+
+        if ($montant_solde < $m) {
+            return $this->error("Vous disposez de $montant_solde {$solde->devise->devise} dans votre compte, votre opération d'échange $m {$solde->devise->devise} (+" . (TAUX_CHANGE * 100) . "%) ne peut etre traité pour le moment.", 200);
+        }
+
+        if ($dev->devise == 'CDF') { // cdf to usd
+            $eval = $amount * $taux->cdf_usd;
+            $to = 'USD';
+        } else if ($dev->devise == 'USD') {
+            $eval = $amount * $taux->usd_cdf;
+            $to = 'CDF';
+        } else {
+            die;
+        }
+
+        $devto = Devise::where('devise', $to)->first();
+        DB::beginTransaction();
+        $compte->soldes()->where('devise_id', $devto->id)->increment('montant', $eval);
+        $compte->soldes()->where('devise_id',  '!=', $devto->id)->decrement('montant', $m);
+
+        $appsolde = SoldeApp::first();
+        $col = strtolower("solde_$dev->devise");
+        if (!$appsolde) {
+            SoldeApp::create([$col => $comm]);
+        } else {
+            SoldeApp::first()->increment($col, $comm);
+        }
+
+        $error = false;
+        foreach ($compte->soldes()->get() as $so) {
+            if ($so->montant < 0) {
+                $error = true;
+                break;
+            }
+        }
+
+        $eval = formatMontant($eval, $to);
+        $m = formatMontant($m, $dev->devise);
+        $m = "Vous venez de recevoir $eval dans votre compte $to, et votre compte $dev->devise a été débité de $m";
+
+        if ($error) {
+            DB::rollBack();
+            return $this->error("Oops ! nous ne pouvons pas effecturer cette opération pour le moment.");
+        } else {
+            try {
+                $d['msg'] = "Cher(e) $user->name, $m";
+                $d['subject'] = "Echange monnaie";
+                Mail::to($user->email)->send(new AppMail((object)  $d));
+            } catch (\Throwable $th) {
+            }
+            DB::commit();
+        }
+
+        return $this->success($m);
     }
 }

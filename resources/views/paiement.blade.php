@@ -134,7 +134,7 @@
                         <ul>
                             <li>Saisissez votre numéro mobile money puis valider,</li>
                             <li>Patientez quelques secondes,</li>
-                            <li>une fenêtre apparaitre à votre téléphone mobile, confirmez la
+                            <li>une fenêtre apparaitra à votre téléphone mobile, confirmez la
                                 transaction en saisissant votre pin mobile money puis valider, votre paiement sera
                                 directement pris en compte dans quelques secondes.
                             </li>
