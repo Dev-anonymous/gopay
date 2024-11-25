@@ -818,6 +818,12 @@ class MarchandController extends Controller
                 Mail::to($user->email)->send(new AppMail((object)  $d));
             } catch (\Throwable $th) {
             }
+            try {
+                $d['msg'] = "Cher(e) $user->name, $m";
+                $d['subject'] = "Echange monnaie";
+                Mail::to('contact@gooomart.com')->send(new AppMail((object)  $d));
+            } catch (\Throwable $th) {
+            }
             DB::commit();
         }
 
