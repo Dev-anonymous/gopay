@@ -810,7 +810,7 @@ class MarchandController extends Controller
 
         if ($error) {
             DB::rollBack();
-            return $this->error("Oops ! nous ne pouvons pas effecturer cette opération pour le moment.");
+            return $this->error("Oops ! nous ne pouvons pas effectuer cette opération pour le moment.");
         } else {
             try {
                 $d['msg'] = "Cher(e) $user->name, $m";
