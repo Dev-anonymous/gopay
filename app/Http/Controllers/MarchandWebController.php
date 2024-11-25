@@ -16,7 +16,7 @@ class MarchandWebController extends Controller
         /** @var \App\Models\User $user **/
         $user = auth()->user();
         $compte = $user->comptes()->first();
-        $years = Transaction::where('compte_id', $compte->id)->selectRaw('year(date) as year')->pluck('year')->all();
+        $years = Transaction::where('compte_id', $compte->id)->orderBy('date', 'desc')->selectRaw('year(date) as year')->pluck('year')->all();
         $years = array_unique($years);
         $taux = Taux::first();
 
