@@ -41,7 +41,7 @@ class Sendmail extends Command
     public function handle()
     {
         Pendingmail::where('retry', '>', 20)->delete();
-        foreach (Pendingmail::all() as $mail) {
+        foreach (Pendingmail::lockForUpdate()->get() as $mail) {
             try {
                 Mail::to($mail->to)->send(new AppMail((object)['subject' => $mail->subject, 'msg' => $mail->text]));
                 $mail->delete();
