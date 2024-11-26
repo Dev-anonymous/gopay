@@ -2,13 +2,16 @@
 
 use App\Models\Apikey;
 use App\Models\Compte;
+use App\Models\Config;
 use App\Models\DemandeTransfert;
 use App\Models\Devise;
 use App\Models\Fp;
+use App\Models\Pendingmail;
 use App\Models\Solde;
 use App\Models\SoldeApp;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Notifications\SendMoney;
 use Illuminate\Support\Facades\DB;
 
 define('FLEXPAY_HEADERS', [
@@ -228,7 +231,8 @@ function saveData($payedata, $e)
             $mt = $trans_data['montant'];
             $solde = $compte->soldes()->where(['devise_id' => $did]);
             $solde->increment('montant', $mt);
-            $dev = strtolower(Devise::where('id', $did)->first()->devise);
+            $devise = Devise::where('id', $did)->first();
+            $dev = strtolower($devise->devise);
             $appsolde = SoldeApp::first();
             $inc = $mt * commission($user);
 
@@ -238,6 +242,61 @@ function saveData($payedata, $e)
                 SoldeApp::first()->increment("solde_$dev", $inc);
             }
             $e->update(['is_saved' => 1]);
+
+            $autosend = getconfig('autosend', $user) == 'yes';
+            if ($autosend) {
+                $autosenddata = (array) json_decode(getconfig('autosenddata', $user));
+                if (count($autosenddata)) {
+                    $tab = [];
+                    $source = $trans_data['source'];
+                    foreach ($autosenddata as $as) {
+                        if ($as->source == $source) {
+                            $tab[] = $as;
+                            break;
+                        }
+                    }
+                    if (count($tab)) {
+                        $tab = end($tab); // always 1
+                        if (100 == array_sum($tab->percent)) {
+                            $montant = $trans_data['montant'];
+
+                            foreach ($tab->phone as $key => $val) {
+                                $num = $val;
+                                $perc = $tab->percent[$key];
+                                $mont = $montant * ($perc / 100);
+
+                                $compte = $user->comptes()->first();
+                                $solde = $compte->soldes()->where(['devise_id' => $devise->id])->first();
+                                $montant_solde = $solde->montant;
+
+                                $comm = $montant * commission($user);
+                                $m =  $montant + $comm;
+
+                                DemandeTransfert::create([
+                                    'solde_id' => $solde->id,
+                                    'au_numero' => $num,
+                                    'montant' => $mont,
+                                    'date' => now('Africa/Lubumbashi'),
+                                    'trans_id' => trans_id('CASH.OUT', $user)
+                                ]);
+
+                                $c = commission($user) * 100;
+                                $mo = formatMontant($mont, $devise->devise);
+                                $so = formatMontant($montant_solde, $devise->devise);
+                                $da = now('Africa/Lubumbashi');
+                                $m = "Demande de transfert de $user->business_name, $user->name </br>Montant : $mo ($perc% de $montant) au $num </br> Solde : $so </br> Commission: $c %, date $da";
+
+                                Pendingmail::create([
+                                    'subject' => 'Send Money [auto]',
+                                    'to' => 'contact@gooomart.com',
+                                    'text' => $m,
+                                    'date' => $da,
+                                ]);
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 }
@@ -376,4 +435,48 @@ function code($lengh = 6)
         }
     }
     return $c;
+}
+
+function getconfig($name, User $user = null)
+{
+    if (!$user) {
+        $user = auth()->user();
+    }
+
+    $conf = json_decode(@$user->configs()->first()->config ?? '[]');
+    if (isset($conf->{$name})) {
+        return $conf->{$name};
+    }
+    return null;
+}
+
+function setconfig($name, $value)
+{
+    if ($name and $value) {
+        $user = auth()->user();
+        $conf = (object) json_decode($user->configs()->first()->config ?? '[]');
+        $conf->{$name} = $value;
+
+        $o = $user->configs()->first();
+        if ($o) {
+            $o->update(['config' => json_encode($conf)]);
+        } else {
+            $user->configs()->create(['config' => json_encode($conf)]);
+        }
+    }
+}
+
+function paysources()
+{
+    return [
+        'API',
+        'E-PAY',
+        'PAY-LINK'
+    ];
+}
+
+
+function isvalidenumber($phone)
+{
+    return in_array(substr($phone, 0, 3), ['099', '097', '098', '090', '081', '082', '083', '084', '085', '080', '086']) and strlen($phone) == 10;
 }

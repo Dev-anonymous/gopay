@@ -40,6 +40,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
             Route::get('account', [MarchandWebController::class, 'compte'])->name('marchand.web.compte');
             Route::get('pay-link', [MarchandWebController::class, 'lien_pay'])->name('marchand.web.lien_pay');
             Route::get('users', [MarchandWebController::class, 'users'])->name('marchand.web.cmpt_pay');
+            Route::get('auto-cash-out', [MarchandWebController::class, 'autocashout'])->name('marchand.web.autocashout');
             Route::get('payout', [MarchandWebController::class, 'payout'])->name('marchand.web.payout');
         });
     });

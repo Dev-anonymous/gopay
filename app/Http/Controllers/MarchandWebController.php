@@ -59,6 +59,11 @@ class MarchandWebController extends Controller
         return view('marchand.users');
     }
 
+    public function autocashout()
+    {
+        return view('marchand.autocashout');
+    }
+
     public function payout()
     {
         return view('marchand.payout');

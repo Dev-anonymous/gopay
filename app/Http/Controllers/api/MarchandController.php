@@ -194,9 +194,15 @@ class MarchandController extends Controller
             }
         }
 
-        // $tel = (int) $telephone;
-        // $orang = substr($tel, 0, 5);
-        // if (!in_array($orang, ["24384", "24385", "24389", "24380"])) {
+        $tel = (int) $telephone;
+        $tel = "0" . substr($tel, 3);
+
+        if (!isvalidenumber($tel)) {
+            return $this->error("Le numéro $telephone n'est pas valide");
+        }
+
+        // $orang = substr($tel, 0, 3);
+        // if (!in_array($orang, ["084", "085", "089", "080"])) {
         //     return $this->error("Veuillez renseigner un numéro Orange SVP.");
         // }
 

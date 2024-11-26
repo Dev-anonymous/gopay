@@ -95,6 +95,12 @@
                                 Comptes de paiement
                             </a>
                         </li>
+                        <li class="sidenav-item">
+                            <a class="sidenav-link" link href="{{ route('marchand.web.autocashout') }}">
+                                <i class="fa-solid fa-cogs p-1"></i>
+                                Transfert automatique
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 <li class="sidenav-item">

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\AdminController;
 use App\Http\Controllers\api\AuthController;
+use App\Http\Controllers\api\ConfigAPIController;
 use App\Http\Controllers\api\DashAPIController;
 use App\Http\Controllers\api\MarchandController;
 use App\Http\Controllers\api\PayementController;
@@ -49,6 +50,8 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
         Route::post('/exchange/willbe', [MarchandController::class, 'willbe'])->name('marchand.api.willbe');
         Route::post('/exchange/exchange', [MarchandController::class, 'exchange'])->name('marchand.api.exchange');
+
+        Route::resource('config', ConfigAPIController::class)->only(['store']);
     });
 
     #==========   User & Key =======#

@@ -57,10 +57,8 @@ class PayoutController extends Controller
 
         return $this->success("DEMANDES DE TRANSFERT", $data);
     }
-    function    newtransfert()
+    function newtransfert()
     {
-
-
         $validator = Validator::make(
             request()->all(),
             [
@@ -91,8 +89,7 @@ class PayoutController extends Controller
         foreach ($telephone as $tel) {
             $valide = true;
 
-            $beig = substr($tel, 0, 3);
-            if (!in_array($beig,  ['099', '097', '098', '090', '081', '082', '083', '084', '085', '089', '080'])) {
+            if (!isvalidenumber($tel)) {
                 $valide = false;
             }
             if (!is_numeric(substr($tel, 1))) {
@@ -119,7 +116,8 @@ class PayoutController extends Controller
         foreach ($telephone as $tel) {
             DemandeTransfert::create([
                 'solde_id' => $solde->id,
-                'au_numero' => $tel, 'montant' => $montant,
+                'au_numero' => $tel,
+                'montant' => $montant,
                 'date' => now('Africa/Lubumbashi'),
                 'date_denvoi' => $dateenv,
                 'trans_id' => trans_id('CASH.OUT', $this->user)

@@ -127,7 +127,7 @@
                         </div>
                         <div id="rep"></div>
                         @if ($taux)
-                            <div class="p-1 rounded-lg" style="background: rgba(0, 0, 0, .125)">
+                            <div class="p-1 rounded-lg" style="background: rgba(0, 0, 0, .075)">
                                 <p class="m-0">Taux</p>
                                 <hr class="m-0">
                                 <b>{{ formatMontant($taux->usd_cdf) }}</b>

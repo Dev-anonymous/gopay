@@ -35,6 +35,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property User|null $user
  * @property Collection|Apikey[] $apikeys
  * @property Collection|Compte[] $comptes
+ * @property Collection|Config[] $configs
  * @property Collection|Recovery[] $recoveries
  * @property Collection|Transaction[] $transactions
  * @property Collection|User[] $users
@@ -91,6 +92,11 @@ class User extends Authenticatable
     public function comptes()
     {
         return $this->hasMany(Compte::class, 'users_id');
+    }
+
+    public function configs()
+    {
+        return $this->hasMany(Config::class, 'users_id');
     }
 
     public function recoveries()
