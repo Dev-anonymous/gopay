@@ -10,11 +10,13 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold"> PAIEMENTS REÇUS (<span nb></span>)</h3>
-                        <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
-                            <i class="fa fa-plus-circle mr-1"></i>
-                            ACCEPTER UN PAIEMENT
-                        </button>
+                        <h6 class="font-weight-bold"> PAIEMENTS REÇUS (<span nb></span>)</h6>
+                        <div class="">
+                            <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
+                                <i class="fa fa-hand-holding-dollar mr-1"></i>
+                                ACCEPTER UN PAIEMENT
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -52,16 +54,16 @@
                                 Saisissez le montant et le numéro du client qui veut effectuer la transaction.
                             </p>
                             <hr>
-                            <div class="form-outline mb-4">
-                                <input id="form1Example1" required type="number" step="0.01" name="amount"
-                                    min="1" class="form-control" />
-                                <label class="form-label" for="form1Example1">Montant à payer </label>
-                            </div>
-                            <div class="mb-4">
-                                <select class='form-control' name="devise">
-                                    <option>CDF</option>
-                                    <option>USD</option>
-                                </select>
+                            <div class="form-outline mb-3 input-group flex-nowrap">
+                                <input required type="number" step="0.01" name="amount"
+                                    class="form-control form-control-sm" />
+                                <label class="form-label" for="form1Example1">Montant à payer</label>
+                                <span class="input-group-text" id="addon-wrapping">
+                                    <select class='form-control form-control-sm' name="devise">
+                                        <option>CDF</option>
+                                        <option>USD</option>
+                                    </select>
+                                </span>
                             </div>
                             <div class="form-outline mb-4 input-group flex-nowrap">
                                 <span class="input-group-text" id="addon-wrapping">+243</span>

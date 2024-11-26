@@ -10,7 +10,7 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold">Dashboard</h3>
+                        <h6 class="font-weight-bold">Dashboard</h6>
                         <div class="">
                             <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
                                 <i class="fa fa-refresh mr-1"></i>

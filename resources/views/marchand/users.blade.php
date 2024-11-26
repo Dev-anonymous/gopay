@@ -10,11 +10,13 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold"> COMPTES DE PAIEMENT (<span nb></span>)</h3>
-                        <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
-                            <i class="fa fa-plus-circle mr-1"></i>
-                            NOUVEAU COMPTE
-                        </button>
+                        <h6 class="font-weight-bold"> COMPTES DE PAIEMENT (<span nb></span>)</h6>
+                        <div class="">
+                            <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
+                                <i class="fa fa-user-plus mr-1"></i>
+                                NOUVEAU COMPTE
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -18,7 +18,7 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold">INTEGRATION API</h3>
+                        <h6 class="font-weight-bold">INTEGRATION API</h6>
                     </div>
                 </div>
             </div>

@@ -10,11 +10,13 @@
             <div class="row">
                 <div class="col-md-12 mt-5">
                     <div class="d-flex justify-content-between mt-5 mb-3">
-                        <h3 class="font-weight-bold">TRANSFERT DE FONDS (<span nb></span>)</h3>
-                        <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
-                            <i class="fa fa-plus-circle mr-1"></i>
-                            NOUVEAU TRANSFERT
-                        </button>
+                        <h6 class="font-weight-bold">TRANSFERT DE FONDS (<span nb></span>)</h6>
+                        <div class="">
+                            <button class="btn btn-dark btn-sm" data-toggle="modal" data-target="#mdladd">
+                                <i class="fa fa-plus-circle mr-1"></i>
+                                NOUVEAU TRANSFERT
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -68,16 +70,16 @@
                                 </b>
                             </div>
                             <hr>
-                            <div class="form-outline mb-4">
-                                <input id="form1Example1" required type="number" step="0.01" name="montant"
-                                    class="form-control" />
-                                <label class="form-label" for="form1Example1">Transférer un montant de </label>
-                            </div>
-                            <div class="mb-4">
-                                <select class='form-control' name="devise">
-                                    <option>CDF</option>
-                                    <option>USD</option>
-                                </select>
+                            <div class="form-outline mb-3 input-group flex-nowrap">
+                                <input required type="number" step="0.01" name="montant"
+                                    class="form-control form-control-sm" />
+                                <label class="form-label" for="form1Example1">Transférer un montant de</label>
+                                <span class="input-group-text" id="addon-wrapping">
+                                    <select class='form-control form-control-sm' name="devise">
+                                        <option>CDF</option>
+                                        <option>USD</option>
+                                    </select>
+                                </span>
                             </div>
                             @php
                                 $tel = substr((int) auth()->user()->phone, 3);
