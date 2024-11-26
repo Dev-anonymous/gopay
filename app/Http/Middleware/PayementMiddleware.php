@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class PayementMiddleware
 {
@@ -17,6 +18,7 @@ class PayementMiddleware
     public function handle(Request $request, Closure $next)
     {
         completeFlexpayTrans();
+        Artisan::call('sendmail');
         return $next($request);
     }
 }
