@@ -77,7 +77,7 @@
                                 <label class="form-label" for="form1Example1">Commission en %</label>
                             </div>
                             <div class="form-outline mb-4">
-                                <input type="password" name="password" id="form1Example2" class="form-control" required />
+                                <input name="password" id="form1Example2" class="form-control" required />
                                 <label class="form-label" for="form1Example2">Mot de passe</label>
                             </div>
                             <div id="rep"></div>

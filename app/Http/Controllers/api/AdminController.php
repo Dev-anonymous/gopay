@@ -92,7 +92,7 @@ class AdminController extends Controller
                 'commission' => 'required|numeric|min:2',
                 'email' => 'sometimes|email|max:45|unique:users',
                 'phone' => 'sometimes|min:10|numeric|regex:/(\+)[0-9]{10}/|unique:users,phone',
-                'password' => 'required|string|min:6|',
+                'password' => 'required|string|',
             ]
         );
 

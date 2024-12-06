@@ -22,6 +22,7 @@ class DashAPIController extends Controller
         $year = request()->year ?? date('Y');
 
 
+        $series = [];
         if ('marchand' == $user->user_role) {
             $compte = $user->comptes()->first();
             $solde = tot_solde_marchand($compte->id);
