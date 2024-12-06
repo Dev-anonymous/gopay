@@ -18,6 +18,9 @@ class MarchandWebController extends Controller
         $compte = $user->comptes()->first();
         $years = Transaction::where('compte_id', $compte->id)->orderBy('date', 'desc')->selectRaw('year(date) as year')->pluck('year')->all();
         $years = array_unique($years);
+        if (!count($years)) {
+            $years[] = date('Y');
+        }
         $taux = Taux::first();
 
         return view('marchand.index', compact('years', 'taux'));
