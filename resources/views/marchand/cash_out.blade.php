@@ -65,7 +65,7 @@
                             </div>
                             <div class="alert alert-danger">
                                 <b>
-                                    <i class="fa fa-exclamation-triangle"></i> Il est fortement récommandé d'utiliser un
+                                    <i class="fa fa-exclamation-triangle"></i> Il est récommandé d'utiliser un
                                     numéro Orange pour le transfert de fonds.
                                 </b>
                             </div>
